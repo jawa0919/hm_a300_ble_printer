@@ -1,15 +1,13 @@
 # hm_a300_ble_printer
 
-https://www.hprt.com.cn/search_keywork.html?search_key=HM-A300&search_num=21
+a flutter plugin for HM-A300 ble printer.
 
-## Getting Started
+[HM-A300-sdk](https://www.hprt.com.cn/search_keywork.html?search_key=HM-A300&search_num=21)
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+## Other
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### pigeon
 
+```shell
+dart run pigeon --input pigeon/messages.dart
+```

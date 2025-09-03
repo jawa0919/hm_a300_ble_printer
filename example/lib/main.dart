@@ -31,8 +31,8 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await _hmA300BlePrinterPlugin.getPlatformVersion() ?? 'Unknown platform version';
+      platformVersion = await _hmA300BlePrinterPlugin.getPlatformVersion() ??
+          'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -51,11 +51,20 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        appBar: AppBar(title: const Text('Plugin example app')),
+        body: Column(
+          children: [
+            Center(
+              child: Text('Running on: $_platformVersion\n'),
+            ),
+            FutureBuilder(
+              future: _hmA300BlePrinterPlugin.getAllVersions(),
+              builder: (c, s) {
+                if (s.hasData) return Text(s.data.toString());
+                return Container();
+              },
+            ),
+          ],
         ),
       ),
     );
