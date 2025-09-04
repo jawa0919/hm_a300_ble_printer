@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:hm_a300_ble_printer/hm_a300_ble_printer.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MaterialApp(home: const MyApp(), title: 'HM A300 Printer'));
 }
 
 class MyApp extends StatefulWidget {
@@ -16,48 +15,108 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  final _hmA300BlePrinterPlugin = HmA300BlePrinter();
+  final _plg = HmA300BlePrinter();
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    _plg.getPlatformVersion().then((r) {
+      debugPrint('main.dart~getPlatformVersion: $r');
+    });
+    _plg.getHostInfo().then((r) {
+      debugPrint('main.dart~getHostInfo: $r');
+    });
+    _scanResultsSubscription = _plg.scanResults.listen((res) {
+      setState(() {
+        _scanResults = [..._scanResults, res];
+        debugPrint('main.dart~scanResults: ${_scanResults.length}');
+      });
+    });
   }
 
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    try {
-      platformVersion = await _hmA300BlePrinterPlugin.getPlatformVersion() ??
-          'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-    if (!mounted) return;
-    setState(() {
-      _platformVersion = platformVersion;
-    });
+  StreamSubscription<BlePrinterDevice>? _scanResultsSubscription;
+  List<BlePrinterDevice> _scanResults = [];
+
+  @override
+  void dispose() {
+    _scanResultsSubscription?.cancel();
+    _plg.stopScan();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Plugin example app')),
-        body: Column(
-          children: [
-            Center(
-              child: Text('Running on: $_platformVersion\n'),
-            ),
-            FutureBuilder(
-              future: _hmA300BlePrinterPlugin.getHostInfo(),
-              builder: (c, s) {
-                if (s.hasData) return Text(s.data.toString());
-                return Container();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Plugin example app'),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.checklist),
+          )
+        ],
+      ),
+      body: ListView.builder(
+        itemCount: _scanResults.length,
+        itemBuilder: (context, index) {
+          final sRes = _scanResults[index];
+          return ListTile(
+            leading: Text("${sRes.rssi}"),
+            title: Text(sRes.name),
+            subtitle: Text(sRes.address),
+            // trailing: StreamBuilder<BluetoothConnectionState>(
+            //   stream: sRes.connectionState,
+            //   builder: (c, s) {
+            //     if (s.data == BluetoothConnectionState.connected) {
+            //       return Icon(Icons.bluetooth_connected);
+            //     }
+            //     return Icon(Icons.bluetooth_disabled);
+            //   },
+            // ),
+            onTap: () {
+              // if (!sRes.device.isConnected) {
+              //   FlutterBluePlus.stopScan();
+              //   sRes.device.connect();
+              // } else {
+              //   debugPrint('main.dart~device: ${sRes.device}');
+              //   // Navigator.push(context, MaterialPageRoute(builder: (c) {
+              //   //   return DevicePage(sRes.device);
+              //   // }));
+              // }
+            },
+          );
+        },
+      ),
+      floatingActionButton: StreamBuilder<bool>(
+        initialData: false,
+        stream: _plg.isScanning,
+        builder: (c, s) {
+          if (s.data == false) {
+            return FloatingActionButton(
+              onPressed: () {
+                _plg.checkBluetoothState().then((r) {
+                  debugPrint('main.dart~checkBluetoothState: $r');
+                  _scanResults.clear();
+                  setState(() {});
+                  _plg.startScan().then((r) {
+                    debugPrint('main.dart~startScan: $r');
+                  }).catchError((e) {
+                    debugPrint('main.dart~startScan: error: $e');
+                  });
+                }).catchError((e) {
+                  debugPrint('main.dart~checkBluetoothState: error: $e');
+                });
               },
-            ),
-          ],
-        ),
+              child: Icon(Icons.find_in_page),
+            );
+          }
+          return FloatingActionButton(
+            onPressed: () {
+              _plg.stopScan();
+            },
+            child: Icon(Icons.stop),
+          );
+        },
       ),
     );
   }

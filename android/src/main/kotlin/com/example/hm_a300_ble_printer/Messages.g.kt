@@ -62,6 +62,10 @@ private open class MessagesPigeonCodec : StandardMessageCodec() {
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface HmA300BlePrinterHostApi {
   fun getHostInfo(callback: (Result<String>) -> Unit)
+  fun bluetoothEnabled(callback: (Result<Boolean>) -> Unit)
+  fun checkPermission(callback: (Result<Boolean>) -> Unit)
+  fun startScan(callback: (Result<Boolean>) -> Unit)
+  fun stopScan(callback: (Result<Boolean>) -> Unit)
 
   companion object {
     /** The codec used by HmA300BlePrinterHostApi. */
@@ -73,10 +77,82 @@ interface HmA300BlePrinterHostApi {
     fun setUp(binaryMessenger: BinaryMessenger, api: HmA300BlePrinterHostApi?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_printer.HmA300BlePrinterHostApi.getHostInfo$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.getHostInfo$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { _, reply ->
             api.getHostInfo{ result: Result<String> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(MessagesPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(MessagesPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.bluetoothEnabled$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.bluetoothEnabled{ result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(MessagesPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(MessagesPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.checkPermission$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.checkPermission{ result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(MessagesPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(MessagesPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.startScan$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.startScan{ result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(MessagesPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(MessagesPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.stopScan$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.stopScan{ result: Result<Boolean> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(MessagesPigeonUtils.wrapError(error))
@@ -104,7 +180,7 @@ class HmA300BlePrinterFlutterApi(private val binaryMessenger: BinaryMessenger, p
   fun getFlutterInfo(callback: (Result<String>) -> Unit)
 {
     val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
-    val channelName = "dev.flutter.pigeon.hm_printer.HmA300BlePrinterFlutterApi.getFlutterInfo$separatedMessageChannelSuffix"
+    val channelName = "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.getFlutterInfo$separatedMessageChannelSuffix"
     val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
     channel.send(null) {
       if (it is List<*>) {
@@ -115,6 +191,23 @@ class HmA300BlePrinterFlutterApi(private val binaryMessenger: BinaryMessenger, p
         } else {
           val output = it[0] as String
           callback(Result.success(output))
+        }
+      } else {
+        callback(Result.failure(MessagesPigeonUtils.createConnectionError(channelName)))
+      } 
+    }
+  }
+  fun scanResult(bleDeviceDataArg: Map<Any, Any?>, callback: (Result<Unit>) -> Unit)
+{
+    val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+    val channelName = "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.scanResult$separatedMessageChannelSuffix"
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
+    channel.send(listOf(bleDeviceDataArg)) {
+      if (it is List<*>) {
+        if (it.size > 1) {
+          callback(Result.failure(FlutterError(it[0] as String, it[1] as String, it[2] as String?)))
+        } else {
+          callback(Result.success(Unit))
         }
       } else {
         callback(Result.failure(MessagesPigeonUtils.createConnectionError(channelName)))

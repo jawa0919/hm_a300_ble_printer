@@ -2,7 +2,7 @@ import 'package:pigeon/pigeon.dart';
 
 @ConfigurePigeon(
   PigeonOptions(
-    dartPackageName: 'hm_printer',
+    dartPackageName: 'hm_a300_ble_printer',
     dartOut: 'lib/src/messages.g.dart',
     dartOptions: DartOptions(),
     kotlinOut:
@@ -15,19 +15,30 @@ import 'package:pigeon/pigeon.dart';
 // host-definitions#############################################################
 @HostApi()
 abstract class HmA300BlePrinterHostApi {
-  @async
-  String getHostInfo();
   // String? postToHost(String id, Map? map);
-
   // @async
   // Map? postToHostAsync(String id, Map? map);
+  @async
+  String getHostInfo();
 
-  // String? sendCommand(String macId, String command);
+  @async
+  bool bluetoothEnabled();
+
+  @async
+  bool checkPermission();
+
+  @async
+  bool startScan();
+
+  @async
+  bool stopScan();
 }
 
 // flutter-definitions##########################################################
 @FlutterApi()
 abstract class HmA300BlePrinterFlutterApi {
-  String getFlutterInfo();
   // Map? postToFlutter(String id, Map? map);
+  String getFlutterInfo();
+
+  void scanResult(Map bleDeviceData);
 }
