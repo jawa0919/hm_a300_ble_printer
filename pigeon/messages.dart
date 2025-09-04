@@ -15,17 +15,14 @@ import 'package:pigeon/pigeon.dart';
 // host-definitions#############################################################
 @HostApi()
 abstract class HmA300BlePrinterHostApi {
-  // String? postToHost(String id, Map? map);
-  // @async
-  // Map? postToHostAsync(String id, Map? map);
   @async
   String getHostInfo();
+  // ##########################################################################
+  @async
+  bool bleEnabled();
 
   @async
-  bool bluetoothEnabled();
-
-  @async
-  bool checkPermission();
+  bool blePermission();
 
   @async
   bool startScan();
@@ -37,8 +34,9 @@ abstract class HmA300BlePrinterHostApi {
 // flutter-definitions##########################################################
 @FlutterApi()
 abstract class HmA300BlePrinterFlutterApi {
-  // Map? postToFlutter(String id, Map? map);
   String getFlutterInfo();
+  // ##########################################################################
 
-  void scanResult(Map bleDeviceData);
+  void onScanResult(Map map);
+  // void onReceivedData(Map map);
 }

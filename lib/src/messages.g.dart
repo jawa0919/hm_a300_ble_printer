@@ -88,8 +88,8 @@ class HmA300BlePrinterHostApi {
     }
   }
 
-  Future<bool> bluetoothEnabled() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.bluetoothEnabled$pigeonVar_messageChannelSuffix';
+  Future<bool> bleEnabled() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.bleEnabled$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -116,8 +116,8 @@ class HmA300BlePrinterHostApi {
     }
   }
 
-  Future<bool> checkPermission() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.checkPermission$pigeonVar_messageChannelSuffix';
+  Future<bool> blePermission() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.blePermission$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -206,7 +206,7 @@ abstract class HmA300BlePrinterFlutterApi {
 
   String getFlutterInfo();
 
-  void scanResult(Map<Object?, Object?> bleDeviceData);
+  void onScanResult(Map<Object?, Object?> map);
 
   static void setUp(HmA300BlePrinterFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
     messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
@@ -231,20 +231,20 @@ abstract class HmA300BlePrinterFlutterApi {
     }
     {
       final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.scanResult$messageChannelSuffix', pigeonChannelCodec,
+          'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onScanResult$messageChannelSuffix', pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
           assert(message != null,
-          'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.scanResult was null.');
+          'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onScanResult was null.');
           final List<Object?> args = (message as List<Object?>?)!;
-          final Map<Object?, Object?>? arg_bleDeviceData = (args[0] as Map<Object?, Object?>?);
-          assert(arg_bleDeviceData != null,
-              'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.scanResult was null, expected non-null Map<Object?, Object?>.');
+          final Map<Object?, Object?>? arg_map = (args[0] as Map<Object?, Object?>?);
+          assert(arg_map != null,
+              'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onScanResult was null, expected non-null Map<Object?, Object?>.');
           try {
-            api.scanResult(arg_bleDeviceData!);
+            api.onScanResult(arg_map!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);

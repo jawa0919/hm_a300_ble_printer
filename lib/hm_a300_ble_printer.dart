@@ -5,6 +5,23 @@ import 'package:flutter/services.dart';
 
 import '../src/messages.g.dart';
 
+class BlePrinterDevice {
+  BlePrinterDevice({
+    required this.name,
+    required this.address,
+    required this.rssi,
+  });
+
+  final String name;
+  final String address;
+  final int rssi;
+
+  @override
+  String toString() {
+    return 'BlePrinterDevice{name: $name, address: $address, rssi: $rssi}';
+  }
+}
+
 class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
   static const _channel = MethodChannel('hm_a300_ble_printer');
 
@@ -31,63 +48,52 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
     return "Dart ${Platform.version.split(" ").first}";
   }
 
+  // ##########################################################################
+
+  Future<bool> checkBluetoothState() async {
+    final isOpen = await HmA300BlePrinterHostApi().bleEnabled();
+    if (!isOpen) return Future.error("Bluetooth Enabled Failed");
+    final isCheck = await HmA300BlePrinterHostApi().blePermission();
+    if (!isCheck) return Future.error("Bluetooth Permission Failed");
+    return true;
+  }
+
   final _isScanningController = StreamController<bool>.broadcast();
   Stream<bool> get isScanning => _isScanningController.stream;
 
+  Future<bool> startScan({
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    _scanDevices.clear();
+    _isScanningController.add(true);
+    Future.delayed(timeout, stopScan);
+    final s = await HmA300BlePrinterHostApi().startScan();
+    return s;
+  }
+
+  Future<bool> stopScan() async {
+    final s = await HmA300BlePrinterHostApi().stopScan();
+    _isScanningController.add(false);
+    return s;
+  }
+
+  final List<BlePrinterDevice> _scanDevices = [];
+  List<BlePrinterDevice> get scanDevices => _scanDevices;
+  final _scanResultController = StreamController<BlePrinterDevice>.broadcast();
+  Stream<BlePrinterDevice> get scanResult => _scanResultController.stream;
+
   @override
-  void scanResult(Map<dynamic, dynamic> bleDevice) {
-    final name = bleDevice['name'];
-    final address = bleDevice['address'];
-    final rssi = bleDevice['rssi'];
+  void onScanResult(Map<dynamic, dynamic> map) {
+    print('onScanResult: $map');
+    final name = map['name'];
+    final address = map['address'];
+    final rssi = map['rssi'];
     final device = BlePrinterDevice(
       name: name,
       address: address,
       rssi: rssi,
     );
-    print('scanResult: $device');
-    _scanResultsController.add(device);
-  }
-
-  final _scanResultsController = StreamController<BlePrinterDevice>.broadcast();
-  Stream<BlePrinterDevice> get scanResults => _scanResultsController.stream;
-
-  void stopScan() async {
-    await HmA300BlePrinterHostApi().stopScan();
-    _isScanningController.add(false);
-  }
-
-  Future<bool> startScan({
-    Duration timeout = const Duration(seconds: 15),
-  }) async {
-    _isScanningController.add(true);
-    Future.delayed(timeout, stopScan);
-    return await HmA300BlePrinterHostApi().startScan();
-  }
-
-  bool isState = false;
-
-  Future<bool> checkBluetoothState() async {
-    final open = await HmA300BlePrinterHostApi().bluetoothEnabled();
-    if (!open) return Future.error("Bluetooth Enabled Failed");
-    final check = await HmA300BlePrinterHostApi().checkPermission();
-    if (!check) return Future.error("Bluetooth Check Permission Failed");
-    return true;
-  }
-}
-
-class BlePrinterDevice {
-  BlePrinterDevice({
-    required this.name,
-    required this.address,
-    required this.rssi,
-  });
-
-  final String name;
-  final String address;
-  final int rssi;
-
-  @override
-  String toString() {
-    return 'BlePrinterDevice{name: $name, address: $address, rssi: $rssi}';
+    _scanDevices.add(device);
+    _scanResultController.add(device);
   }
 }

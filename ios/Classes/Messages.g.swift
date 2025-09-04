@@ -93,8 +93,8 @@ class MessagesPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol HmA300BlePrinterHostApi {
   func getHostInfo(completion: @escaping (Result<String, Error>) -> Void)
-  func bluetoothEnabled(completion: @escaping (Result<Bool, Error>) -> Void)
-  func checkPermission(completion: @escaping (Result<Bool, Error>) -> Void)
+  func bleEnabled(completion: @escaping (Result<Bool, Error>) -> Void)
+  func blePermission(completion: @escaping (Result<Bool, Error>) -> Void)
   func startScan(completion: @escaping (Result<Bool, Error>) -> Void)
   func stopScan(completion: @escaping (Result<Bool, Error>) -> Void)
 }
@@ -120,10 +120,10 @@ class HmA300BlePrinterHostApiSetup {
     } else {
       getHostInfoChannel.setMessageHandler(nil)
     }
-    let bluetoothEnabledChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.bluetoothEnabled\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let bleEnabledChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.bleEnabled\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
-      bluetoothEnabledChannel.setMessageHandler { _, reply in
-        api.bluetoothEnabled { result in
+      bleEnabledChannel.setMessageHandler { _, reply in
+        api.bleEnabled { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -133,12 +133,12 @@ class HmA300BlePrinterHostApiSetup {
         }
       }
     } else {
-      bluetoothEnabledChannel.setMessageHandler(nil)
+      bleEnabledChannel.setMessageHandler(nil)
     }
-    let checkPermissionChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.checkPermission\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let blePermissionChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.blePermission\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
-      checkPermissionChannel.setMessageHandler { _, reply in
-        api.checkPermission { result in
+      blePermissionChannel.setMessageHandler { _, reply in
+        api.blePermission { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -148,7 +148,7 @@ class HmA300BlePrinterHostApiSetup {
         }
       }
     } else {
-      checkPermissionChannel.setMessageHandler(nil)
+      blePermissionChannel.setMessageHandler(nil)
     }
     let startScanChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.startScan\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
@@ -185,7 +185,7 @@ class HmA300BlePrinterHostApiSetup {
 /// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
 protocol HmA300BlePrinterFlutterApiProtocol {
   func getFlutterInfo(completion: @escaping (Result<String, PigeonError>) -> Void)
-  func scanResult(bleDeviceData bleDeviceDataArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func onScanResult(map mapArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void)
 }
 class HmA300BlePrinterFlutterApi: HmA300BlePrinterFlutterApiProtocol {
   private let binaryMessenger: FlutterBinaryMessenger
@@ -218,10 +218,10 @@ class HmA300BlePrinterFlutterApi: HmA300BlePrinterFlutterApiProtocol {
       }
     }
   }
-  func scanResult(bleDeviceData bleDeviceDataArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void) {
-    let channelName: String = "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.scanResult\(messageChannelSuffix)"
+  func onScanResult(map mapArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onScanResult\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
-    channel.sendMessage([bleDeviceDataArg] as [Any?]) { response in
+    channel.sendMessage([mapArg] as [Any?]) { response in
       guard let listResponse = response as? [Any?] else {
         completion(.failure(createConnectionError(withChannelName: channelName)))
         return

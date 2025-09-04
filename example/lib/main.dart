@@ -16,6 +16,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _plg = HmA300BlePrinter();
+  String _stateStr = "Unknown";
 
   @override
   void initState() {
@@ -26,9 +27,18 @@ class _MyAppState extends State<MyApp> {
     _plg.getHostInfo().then((r) {
       debugPrint('main.dart~getHostInfo: $r');
     });
-    _scanResultsSubscription = _plg.scanResults.listen((res) {
+    _plg.checkBluetoothState().then((r) {
+      debugPrint('main.dart~checkBluetoothState: $r');
+      _stateStr = "On";
+      setState(() {});
+    }).catchError((e) {
+      debugPrint('main.dart~checkBluetoothState.error: $e');
+      _stateStr = e.toString();
+      setState(() {});
+    });
+    _scanResultsSubscription = _plg.scanResult.listen((d) {
       setState(() {
-        _scanResults = [..._scanResults, res];
+        _scanResults = [..._scanResults, d];
         debugPrint('main.dart~scanResults: ${_scanResults.length}');
       });
     });
@@ -46,16 +56,11 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    if (_stateStr != "On") {
+      return Scaffold(body: Center(child: Text(_stateStr)));
+    }
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Plugin example app'),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.checklist),
-          )
-        ],
-      ),
+      appBar: AppBar(title: const Text('Plugin example app')),
       body: ListView.builder(
         itemCount: _scanResults.length,
         itemBuilder: (context, index) {
@@ -94,17 +99,11 @@ class _MyAppState extends State<MyApp> {
           if (s.data == false) {
             return FloatingActionButton(
               onPressed: () {
-                _plg.checkBluetoothState().then((r) {
-                  debugPrint('main.dart~checkBluetoothState: $r');
-                  _scanResults.clear();
-                  setState(() {});
-                  _plg.startScan().then((r) {
-                    debugPrint('main.dart~startScan: $r');
-                  }).catchError((e) {
-                    debugPrint('main.dart~startScan: error: $e');
-                  });
+                _scanResults.clear();
+                _plg.startScan().then((r) {
+                  debugPrint('main.dart~startScan: $r');
                 }).catchError((e) {
-                  debugPrint('main.dart~checkBluetoothState: error: $e');
+                  debugPrint('main.dart~startScan: error: $e');
                 });
               },
               child: Icon(Icons.find_in_page),
