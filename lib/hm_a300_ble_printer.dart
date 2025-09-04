@@ -1,8 +1,17 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
+
 import '../src/messages.g.dart';
 
 class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
+  static const _channel = MethodChannel('hm_a300_ble_printer');
+
+  Future<String?> getPlatformVersion() async {
+    final String version = await _channel.invokeMethod('getPlatformVersion');
+    return version;
+  }
+
   HmA300BlePrinter._internal() {
     HmA300BlePrinterFlutterApi.setUp(this);
   }
@@ -11,16 +20,12 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
   static HmA300BlePrinter get instance => _singleton;
   static HmA300BlePrinter getInstance() => _singleton;
 
-  Future<String?> getPlatformVersion() {
-    return HmA300BlePrinterHostApi().getPlatformVersion();
-  }
-
-  Future<String?> getAllVersions() {
-    return HmA300BlePrinterHostApi().getAllVersions();
+  Future<String?> getHostInfo() {
+    return HmA300BlePrinterHostApi().getHostInfo();
   }
 
   @override
-  String getDartVersion() {
+  String getFlutterInfo() {
     return "Dart ${Platform.version.split(" ").first}";
   }
 }

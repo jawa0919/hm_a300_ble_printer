@@ -61,8 +61,7 @@ private open class MessagesPigeonCodec : StandardMessageCodec() {
 
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface HmA300BlePrinterHostApi {
-  fun getPlatformVersion(): String
-  fun getAllVersions(callback: (Result<String>) -> Unit)
+  fun getHostInfo(callback: (Result<String>) -> Unit)
 
   companion object {
     /** The codec used by HmA300BlePrinterHostApi. */
@@ -74,25 +73,10 @@ interface HmA300BlePrinterHostApi {
     fun setUp(binaryMessenger: BinaryMessenger, api: HmA300BlePrinterHostApi?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_printer.HmA300BlePrinterHostApi.getPlatformVersion$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_printer.HmA300BlePrinterHostApi.getHostInfo$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { _, reply ->
-            val wrapped: List<Any?> = try {
-              listOf(api.getPlatformVersion())
-            } catch (exception: Throwable) {
-              MessagesPigeonUtils.wrapError(exception)
-            }
-            reply.reply(wrapped)
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_printer.HmA300BlePrinterHostApi.getAllVersions$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.getAllVersions{ result: Result<String> ->
+            api.getHostInfo{ result: Result<String> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(MessagesPigeonUtils.wrapError(error))
@@ -117,10 +101,10 @@ class HmA300BlePrinterFlutterApi(private val binaryMessenger: BinaryMessenger, p
       MessagesPigeonCodec()
     }
   }
-  fun getDartVersion(callback: (Result<String>) -> Unit)
+  fun getFlutterInfo(callback: (Result<String>) -> Unit)
 {
     val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
-    val channelName = "dev.flutter.pigeon.hm_printer.HmA300BlePrinterFlutterApi.getDartVersion$separatedMessageChannelSuffix"
+    val channelName = "dev.flutter.pigeon.hm_printer.HmA300BlePrinterFlutterApi.getFlutterInfo$separatedMessageChannelSuffix"
     val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
     channel.send(null) {
       if (it is List<*>) {

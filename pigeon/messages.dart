@@ -15,10 +15,8 @@ import 'package:pigeon/pigeon.dart';
 // host-definitions#############################################################
 @HostApi()
 abstract class HmA300BlePrinterHostApi {
-  String getPlatformVersion();
-
   @async
-  String getAllVersions();
+  String getHostInfo();
   // String? postToHost(String id, Map? map);
 
   // @async
@@ -30,6 +28,6 @@ abstract class HmA300BlePrinterHostApi {
 // flutter-definitions##########################################################
 @FlutterApi()
 abstract class HmA300BlePrinterFlutterApi {
-  String getDartVersion();
+  String getFlutterInfo();
   // Map? postToFlutter(String id, Map? map);
 }

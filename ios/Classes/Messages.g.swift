@@ -92,8 +92,7 @@ class MessagesPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
 
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol HmA300BlePrinterHostApi {
-  func getPlatformVersion() throws -> String
-  func getAllVersions(completion: @escaping (Result<String, Error>) -> Void)
+  func getHostInfo(completion: @escaping (Result<String, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -102,23 +101,10 @@ class HmA300BlePrinterHostApiSetup {
   /// Sets up an instance of `HmA300BlePrinterHostApi` to handle messages through the `binaryMessenger`.
   static func setUp(binaryMessenger: FlutterBinaryMessenger, api: HmA300BlePrinterHostApi?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
-    let getPlatformVersionChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_printer.HmA300BlePrinterHostApi.getPlatformVersion\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let getHostInfoChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_printer.HmA300BlePrinterHostApi.getHostInfo\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
-      getPlatformVersionChannel.setMessageHandler { _, reply in
-        do {
-          let result = try api.getPlatformVersion()
-          reply(wrapResult(result))
-        } catch {
-          reply(wrapError(error))
-        }
-      }
-    } else {
-      getPlatformVersionChannel.setMessageHandler(nil)
-    }
-    let getAllVersionsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_printer.HmA300BlePrinterHostApi.getAllVersions\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-    if let api = api {
-      getAllVersionsChannel.setMessageHandler { _, reply in
-        api.getAllVersions { result in
+      getHostInfoChannel.setMessageHandler { _, reply in
+        api.getHostInfo { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -128,13 +114,13 @@ class HmA300BlePrinterHostApiSetup {
         }
       }
     } else {
-      getAllVersionsChannel.setMessageHandler(nil)
+      getHostInfoChannel.setMessageHandler(nil)
     }
   }
 }
 /// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
 protocol HmA300BlePrinterFlutterApiProtocol {
-  func getDartVersion(completion: @escaping (Result<String, PigeonError>) -> Void)
+  func getFlutterInfo(completion: @escaping (Result<String, PigeonError>) -> Void)
 }
 class HmA300BlePrinterFlutterApi: HmA300BlePrinterFlutterApiProtocol {
   private let binaryMessenger: FlutterBinaryMessenger
@@ -146,8 +132,8 @@ class HmA300BlePrinterFlutterApi: HmA300BlePrinterFlutterApiProtocol {
   var codec: MessagesPigeonCodec {
     return MessagesPigeonCodec.shared
   }
-  func getDartVersion(completion: @escaping (Result<String, PigeonError>) -> Void) {
-    let channelName: String = "dev.flutter.pigeon.hm_printer.HmA300BlePrinterFlutterApi.getDartVersion\(messageChannelSuffix)"
+  func getFlutterInfo(completion: @escaping (Result<String, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.hm_printer.HmA300BlePrinterFlutterApi.getFlutterInfo\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
     channel.sendMessage(nil) { response in
       guard let listResponse = response as? [Any?] else {
