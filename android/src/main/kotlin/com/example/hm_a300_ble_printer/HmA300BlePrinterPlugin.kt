@@ -14,6 +14,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import cpcl.PrinterHelper
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -97,43 +98,57 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     private fun setup() {
         bleAdapter = BluetoothAdapter.getDefaultAdapter()
 
-        val findFilter = IntentFilter();
+        val findFilter = IntentFilter()
         findFilter.addAction(BluetoothDevice.ACTION_FOUND)
         findFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-        context?.registerReceiver(findReceiver, findFilter)
+        context?.registerReceiver(bleReceiver, findFilter)
     }
 
     private fun tearDown() {
-        context?.unregisterReceiver(findReceiver)
+        context?.unregisterReceiver(bleReceiver)
         bleAdapter = null
     }
 
     private var bleAdapter: BluetoothAdapter? = null
-    private val findReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    private val bleReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         @SuppressLint("MissingPermission")
         override fun onReceive(context: Context, intent: Intent) {
-            if (BluetoothDevice.ACTION_FOUND != intent.action) return
-            val d = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-            if (d == null || d.name == null) return
-            if (d.address == null) return
-            // FIXME: printer is classic bluetooth, not le bluetooth
-            if (d.type == BluetoothDevice.DEVICE_TYPE_LE) return
-            val rssi = intent.extras?.getShort(BluetoothDevice.EXTRA_RSSI)?.toInt()
-            val m = mapOf<Any, Any?>(
-                "name" to d.name,
-                "address" to d.address,
-                "rssi" to rssi,
-                "type" to d.type,
-            )
-            fApi?.onScanResult(m) {}
+            when (intent.action) {
+                BluetoothDevice.ACTION_FOUND -> {
+                    //扫描-发现设备
+                    val d = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+                    if (d == null || d.name == null || d.address == null) return
+                    Log.d(TAG, "onReceive.ACTION_FOUND: $d")
+                    // FIXME: printer is classic bluetooth, not le bluetooth
+                    if (d.type == BluetoothDevice.DEVICE_TYPE_LE) return
+                    val rssi = intent.extras?.getShort(BluetoothDevice.EXTRA_RSSI)?.toInt()
+                    val m = mapOf<Any, Any?>(
+                        "name" to d.name,
+                        "address" to d.address,
+                        "type" to d.type,
+                        "bondState" to d.bondState,
+                        "rssi" to rssi,
+                    )
+                    fApi?.onFound(m) {}
+                }
+
+                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                    //扫描结束
+                    Log.d(TAG, "onReceive.ACTION_DISCOVERY_FINISHED: ")
+                    val m = mapOf<Any, Any?>()
+                    fApi?.onDiscoveryFinished(m) {}
+                }
+
+                else -> {}
+            }
         }
     }
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ): Boolean {
-        if (requestCode != pRequestCodeCode) return false;
-        if (grantResults.isEmpty()) return false;
+        if (requestCode != pRequestCodeCode) return false
+        if (grantResults.isEmpty()) return false
         grantResults.map {
             if (it != PackageManager.PERMISSION_GRANTED) {
                 pCallback?.let { it(Result.success(false)) }
@@ -160,12 +175,12 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     private fun neededPermission(): ArrayList<String> {
         val permissions = ArrayList<String>()
         if (Build.VERSION.SDK_INT <= 30) { // Android 11 (September 2020)
-            permissions.add(Manifest.permission.BLUETOOTH);
-            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            permissions.add(Manifest.permission.BLUETOOTH)
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
         if (Build.VERSION.SDK_INT >= 31) { // Android 12 (October 2021)
-            permissions.add(Manifest.permission.BLUETOOTH_SCAN);
-            permissions.add(Manifest.permission.BLUETOOTH_CONNECT);
+            permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
         }
         val permissionsNeeded = arrayListOf<String>()
         for (p in permissions) {
@@ -176,7 +191,7 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         return permissionsNeeded
     }
 
-    private val pRequestCodeCode = 30919;
+    private val pRequestCodeCode = 30919
     override fun blePermission(callback: (Result<Boolean>) -> Unit) {
         val pList = neededPermission()
         if (pList.isEmpty()) {
@@ -208,5 +223,85 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         } ?: {
             callback(Result.failure(Throwable("BluetoothAdapter is null")))
         }
+    }
+
+    override fun connect(address: String, callback: (Result<Long>) -> Unit) {
+        Log.d(TAG, "connect: $address")
+        context?.let { ct ->
+            callback(Result.success(PrinterHelper.portOpenBT(ct, address).toLong()))
+        } ?: {
+            callback(Result.failure(Throwable("context is null")))
+        }
+    }
+
+    override fun disconnect(address: String, callback: (Result<Boolean>) -> Unit) {
+        Log.d(TAG, "disconnect: $address")
+        callback(Result.success(PrinterHelper.portClose()))
+    }
+
+    override fun sendCommand(address: String, cmd: String, callback: (Result<Boolean>) -> Unit) {
+        PrinterHelper.Encoding("gb2312")
+        val cList = cmd.split("\t\n")
+        for (c in cList) {
+            PrinterHelper.WriteData("$c\t\n".toByteArray(charset(PrinterHelper.LanguageEncode)))
+        }
+        callback(Result.success(true))
+    }
+
+    override fun printerEncoding(
+        address: String, encoding: String, callback: (Result<Long>) -> Unit
+    ) {
+        callback(Result.success(PrinterHelper.Encoding(encoding).toLong()))
+    }
+
+    override fun printerPrintAreaSize(
+        address: String, data: List<String>, callback: (Result<Long>) -> Unit
+    ) {
+        if (data.size != 5) {
+            callback(Result.failure(Throwable("printAreaSize data size must 5")))
+            return
+        }
+        val r = PrinterHelper.printAreaSize(data[0], data[1], data[2], data[3], data[4]).toLong()
+        callback(Result.success(r))
+    }
+
+    override fun printerWriteData(
+        address: String, data: String, callback: (Result<Long>) -> Unit
+    ) {
+        val byteData = "$data\t\n".toByteArray(charset(PrinterHelper.LanguageEncode))
+        val r = PrinterHelper.WriteData(byteData).toLong()
+        callback(Result.success(r))
+    }
+
+    override fun printerLine(
+        address: String, data: List<String>, callback: (Result<Long>) -> Unit
+    ) {
+        if (data.size != 5) {
+            callback(Result.failure(Throwable("Line data size must 5")))
+            return
+        }
+        val r = PrinterHelper.printAreaSize(data[0], data[1], data[2], data[3], data[4]).toLong()
+        callback(Result.success(r))
+    }
+
+    override fun printerText(
+        address: String, data: List<String>, callback: (Result<Long>) -> Unit
+    ) {
+        if (data.size != 6) {
+            callback(Result.failure(Throwable("Text data size must 6")))
+            return
+        }
+        val r = PrinterHelper.Text(data[0], data[1], data[2], data[3], data[4], data[5]).toLong()
+        callback(Result.success(r))
+    }
+
+    override fun printerForm(address: String, callback: (Result<Long>) -> Unit) {
+        val r = PrinterHelper.Form().toLong()
+        callback(Result.success(r))
+    }
+
+    override fun printerPrint(address: String, callback: (Result<Long>) -> Unit) {
+        val r = PrinterHelper.Print().toLong()
+        callback(Result.success(r))
     }
 }

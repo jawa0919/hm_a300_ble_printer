@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
 
 import 'package:hm_a300_ble_printer/hm_a300_ble_printer.dart';
 
@@ -37,10 +38,8 @@ class _MyAppState extends State<MyApp> {
       setState(() {});
     });
     _scanResultsSubscription = _plg.scanResult.listen((d) {
-      setState(() {
-        _scanResults = [..._scanResults, d];
-        debugPrint('main.dart~scanResults: ${_scanResults.length}');
-      });
+      _scanResults = [..._scanResults, d];
+      setState(() {});
     });
   }
 
@@ -64,30 +63,34 @@ class _MyAppState extends State<MyApp> {
       body: ListView.builder(
         itemCount: _scanResults.length,
         itemBuilder: (context, index) {
-          final sRes = _scanResults[index];
+          final dRes = _scanResults[index];
           return ListTile(
-            leading: Text("${sRes.rssi}"),
-            title: Text(sRes.name),
-            subtitle: Text(sRes.address),
-            // trailing: StreamBuilder<BluetoothConnectionState>(
-            //   stream: sRes.connectionState,
-            //   builder: (c, s) {
-            //     if (s.data == BluetoothConnectionState.connected) {
-            //       return Icon(Icons.bluetooth_connected);
-            //     }
-            //     return Icon(Icons.bluetooth_disabled);
-            //   },
-            // ),
-            onTap: () {
-              // if (!sRes.device.isConnected) {
-              //   FlutterBluePlus.stopScan();
-              //   sRes.device.connect();
-              // } else {
-              //   debugPrint('main.dart~device: ${sRes.device}');
-              //   // Navigator.push(context, MaterialPageRoute(builder: (c) {
-              //   //   return DevicePage(sRes.device);
-              //   // }));
-              // }
+            leading: Text("${dRes.rssi}"),
+            title: Text(dRes.name),
+            subtitle: Text(dRes.address),
+            trailing: Icon(Icons.connect_without_contact),
+            onTap: () async {
+              await _plg.stopScan();
+              dRes.connect().then((r) {
+                debugPrint('main.dart~connect: $r');
+                if (r == 0) {
+                  // ignore: use_build_context_synchronously
+                  Navigator.push(context, MaterialPageRoute(builder: (c) {
+                    return DevicePage(dRes);
+                  }));
+                } else {
+                  // ignore: use_build_context_synchronously
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("连接失败: 错误码$r"),
+                  ));
+                }
+              }).catchError((e) {
+                debugPrint('main.dart~connect: error: $e');
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text("连接失败: $e"),
+                ));
+              });
             },
           );
         },
@@ -118,5 +121,85 @@ class _MyAppState extends State<MyApp> {
         },
       ),
     );
+  }
+}
+
+class DevicePage extends StatefulWidget {
+  final BlePrinterDevice device;
+  const DevicePage(this.device, {super.key});
+
+  @override
+  State<DevicePage> createState() => _DevicePageState();
+}
+
+class _DevicePageState extends State<DevicePage> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.device.disconnect();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.device.name)),
+      body: ListView(
+        children: [
+          _buildExample1(context),
+          _buildExample2(context),
+        ],
+      ),
+    );
+  }
+
+  ListTile _buildExample1(BuildContext context) {
+//       BlueToothName: HM-A300-55ea
+//       MacAddress: 00:15:83:CE:55:EA
+    final cmdStr = """
+! 0 200 200 304 1
+LINE 0 236 528 236 1
+T 8 0 0 248 测试备注
+T 8 0 0 196 微信扫码查看最新产品
+T 8 0 280 0 编号: 20230216001
+T 8 0 280 50 品名: 路易威登
+T 8 0 280 100 克重: 10
+T 8 0 280 150 成分: 聚酯纤维,莫代尔,
+T 8 0 280 174 氨纶,莱卡,腈纶,亚麻,苎
+T 8 0 280 198 麻,涤纶,人棉,棉
+FORM
+PRINT""";
+    return ListTile(
+      title: Text("Example-1"),
+      subtitle: Text(cmdStr),
+      trailing: Icon(Icons.print),
+      onTap: () {
+        widget.device.sendCommand(cmdStr).then((r) {
+          debugPrint('main.dart~print: $r');
+        }).catchError((e) {
+          debugPrint('main.dart~print: error: $e');
+        });
+      },
+    );
+  }
+
+  Widget _buildExample2(BuildContext context) {
+    return Container();
+    // return ListTile(
+    //   title: Text("Example-2"),
+    //   subtitle: Text(""),
+    //   trailing: Icon(Icons.print),
+    //   onTap: () {
+    //     widget.device.sendCommand("! 0 200 200 304 1").then((r) {
+    //       debugPrint('main.dart~print: $r');
+    //     }).catchError((e) {
+    //       debugPrint('main.dart~print: error: $e');
+    //     });
+    //   },
+    // );
   }
 }

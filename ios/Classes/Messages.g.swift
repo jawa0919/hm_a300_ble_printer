@@ -97,6 +97,16 @@ protocol HmA300BlePrinterHostApi {
   func blePermission(completion: @escaping (Result<Bool, Error>) -> Void)
   func startScan(completion: @escaping (Result<Bool, Error>) -> Void)
   func stopScan(completion: @escaping (Result<Bool, Error>) -> Void)
+  func connect(address: String, completion: @escaping (Result<Int64, Error>) -> Void)
+  func disconnect(address: String, completion: @escaping (Result<Bool, Error>) -> Void)
+  func sendCommand(address: String, cmd: String, completion: @escaping (Result<Bool, Error>) -> Void)
+  func printerEncoding(address: String, encoding: String, completion: @escaping (Result<Int64, Error>) -> Void)
+  func printerPrintAreaSize(address: String, data: [String], completion: @escaping (Result<Int64, Error>) -> Void)
+  func printerWriteData(address: String, data: String, completion: @escaping (Result<Int64, Error>) -> Void)
+  func printerLine(address: String, data: [String], completion: @escaping (Result<Int64, Error>) -> Void)
+  func printerText(address: String, data: [String], completion: @escaping (Result<Int64, Error>) -> Void)
+  func printerForm(address: String, completion: @escaping (Result<Int64, Error>) -> Void)
+  func printerPrint(address: String, completion: @escaping (Result<Int64, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -180,12 +190,189 @@ class HmA300BlePrinterHostApiSetup {
     } else {
       stopScanChannel.setMessageHandler(nil)
     }
+    let connectChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.connect\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      connectChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        api.connect(address: addressArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      connectChannel.setMessageHandler(nil)
+    }
+    let disconnectChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.disconnect\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      disconnectChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        api.disconnect(address: addressArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      disconnectChannel.setMessageHandler(nil)
+    }
+    let sendCommandChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.sendCommand\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      sendCommandChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        let cmdArg = args[1] as! String
+        api.sendCommand(address: addressArg, cmd: cmdArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      sendCommandChannel.setMessageHandler(nil)
+    }
+    let printerEncodingChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerEncoding\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      printerEncodingChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        let encodingArg = args[1] as! String
+        api.printerEncoding(address: addressArg, encoding: encodingArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      printerEncodingChannel.setMessageHandler(nil)
+    }
+    let printerPrintAreaSizeChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerPrintAreaSize\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      printerPrintAreaSizeChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        let dataArg = args[1] as! [String]
+        api.printerPrintAreaSize(address: addressArg, data: dataArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      printerPrintAreaSizeChannel.setMessageHandler(nil)
+    }
+    let printerWriteDataChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerWriteData\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      printerWriteDataChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        let dataArg = args[1] as! String
+        api.printerWriteData(address: addressArg, data: dataArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      printerWriteDataChannel.setMessageHandler(nil)
+    }
+    let printerLineChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerLine\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      printerLineChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        let dataArg = args[1] as! [String]
+        api.printerLine(address: addressArg, data: dataArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      printerLineChannel.setMessageHandler(nil)
+    }
+    let printerTextChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerText\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      printerTextChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        let dataArg = args[1] as! [String]
+        api.printerText(address: addressArg, data: dataArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      printerTextChannel.setMessageHandler(nil)
+    }
+    let printerFormChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerForm\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      printerFormChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        api.printerForm(address: addressArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      printerFormChannel.setMessageHandler(nil)
+    }
+    let printerPrintChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerPrint\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      printerPrintChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let addressArg = args[0] as! String
+        api.printerPrint(address: addressArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      printerPrintChannel.setMessageHandler(nil)
+    }
   }
 }
 /// Generated protocol from Pigeon that represents Flutter messages that can be called from Swift.
 protocol HmA300BlePrinterFlutterApiProtocol {
   func getFlutterInfo(completion: @escaping (Result<String, PigeonError>) -> Void)
-  func onScanResult(map mapArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func onFound(map mapArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void)
+  func onDiscoveryFinished(map mapArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void)
 }
 class HmA300BlePrinterFlutterApi: HmA300BlePrinterFlutterApiProtocol {
   private let binaryMessenger: FlutterBinaryMessenger
@@ -218,8 +405,26 @@ class HmA300BlePrinterFlutterApi: HmA300BlePrinterFlutterApiProtocol {
       }
     }
   }
-  func onScanResult(map mapArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void) {
-    let channelName: String = "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onScanResult\(messageChannelSuffix)"
+  func onFound(map mapArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onFound\(messageChannelSuffix)"
+    let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
+    channel.sendMessage([mapArg] as [Any?]) { response in
+      guard let listResponse = response as? [Any?] else {
+        completion(.failure(createConnectionError(withChannelName: channelName)))
+        return
+      }
+      if listResponse.count > 1 {
+        let code: String = listResponse[0] as! String
+        let message: String? = nilOrValue(listResponse[1])
+        let details: String? = nilOrValue(listResponse[2])
+        completion(.failure(PigeonError(code: code, message: message, details: details)))
+      } else {
+        completion(.success(()))
+      }
+    }
+  }
+  func onDiscoveryFinished(map mapArg: [AnyHashable?: Any?], completion: @escaping (Result<Void, PigeonError>) -> Void) {
+    let channelName: String = "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onDiscoveryFinished\(messageChannelSuffix)"
     let channel = FlutterBasicMessageChannel(name: channelName, binaryMessenger: binaryMessenger, codec: codec)
     channel.sendMessage([mapArg] as [Any?]) { response in
       guard let listResponse = response as? [Any?] else {

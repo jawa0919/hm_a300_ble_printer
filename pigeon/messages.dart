@@ -29,6 +29,36 @@ abstract class HmA300BlePrinterHostApi {
 
   @async
   bool stopScan();
+
+  @async
+  int connect(String address);
+
+  @async
+  bool disconnect(String address);
+
+  @async
+  bool sendCommand(String address, String cmd);
+
+  @async
+  int printerEncoding(String address, String encoding);
+
+  @async
+  int printerPrintAreaSize(String address, List<String> data);
+
+  @async
+  int printerWriteData(String address, String data);
+
+  @async
+  int printerLine(String address, List<String> data);
+
+  @async
+  int printerText(String address, List<String> data);
+
+  @async
+  int printerForm(String address);
+
+  @async
+  int printerPrint(String address);
 }
 
 // flutter-definitions##########################################################
@@ -37,6 +67,7 @@ abstract class HmA300BlePrinterFlutterApi {
   String getFlutterInfo();
   // ##########################################################################
 
-  void onScanResult(Map map);
+  void onFound(Map map);
+  void onDiscoveryFinished(Map map);
   // void onReceivedData(Map map);
 }
