@@ -1,5 +1,6 @@
 package com.example.hm_a300_ble_printer
 
+import FlutterError
 import HmA300BlePrinterFlutterApi
 import HmA300BlePrinterHostApi
 import android.Manifest
@@ -167,7 +168,7 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         bleAdapter?.let {
             callback(Result.success(it.isEnabled))
         } ?: {
-            callback(Result.failure(Throwable("BluetoothAdapter is null")))
+            callback(Result.failure(FlutterError("BluetoothAdapter is null")))
         }
     }
 
@@ -211,7 +212,7 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         bleAdapter?.let { ad ->
             callback(Result.success(ad.startDiscovery()))
         } ?: {
-            callback(Result.failure(Throwable("BluetoothAdapter is null")))
+            callback(Result.failure(FlutterError("BluetoothAdapter is null")))
         }
     }
 
@@ -221,7 +222,7 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         bleAdapter?.let { ad ->
             callback(Result.success(ad.cancelDiscovery()))
         } ?: {
-            callback(Result.failure(Throwable("BluetoothAdapter is null")))
+            callback(Result.failure(FlutterError("BluetoothAdapter is null")))
         }
     }
 

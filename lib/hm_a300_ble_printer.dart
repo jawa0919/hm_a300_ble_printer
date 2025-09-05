@@ -118,10 +118,10 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
   // ##########################################################################
 
   Future<bool> checkBluetoothState() async {
-    final isOpen = await HmA300BlePrinterHostApi().bleEnabled();
-    if (!isOpen) return Future.error("Bluetooth Enabled Failed");
     final isCheck = await HmA300BlePrinterHostApi().blePermission();
     if (!isCheck) return Future.error("Bluetooth Permission Failed");
+    final isOpen = await HmA300BlePrinterHostApi().bleEnabled();
+    if (!isOpen) return Future.error("Bluetooth Enabled Failed");
     return true;
   }
 
