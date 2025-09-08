@@ -26,4 +26,5 @@ https://www.hprt.com.cn/search_keywork.html?search_key=HM-A300&search_num=21
   # plugin's privacy impact, and then uncomment this line. For more information,
   # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
   # s.resource_bundles = {'hm_a300_ble_printer_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
+   s.vendored_frameworks = ['PrinterSDK.xcframework']
 end
