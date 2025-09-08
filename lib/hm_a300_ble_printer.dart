@@ -9,31 +9,16 @@ class BlePrinterDevice {
   BlePrinterDevice({
     required this.name,
     required this.address,
-    required this.type,
-    required this.bondState,
     required this.rssi,
   });
 
   final String name;
   final String address;
-
-  /// public static final int DEVICE_TYPE_CLASSIC = 1;
-  /// public static final int DEVICE_TYPE_DUAL = 3;
-  /// public static final int DEVICE_TYPE_LE = 2;
-  /// public static final int DEVICE_TYPE_UNKNOWN = 0;
-  final int type;
-
-  /// public static final int BOND_BONDED = 12;
-  /// public static final int BOND_BONDING = 11;
-  /// public static final int BOND_NONE = 10;
-  final int bondState;
   final int rssi;
-
-  bool get isBonded => bondState == 12;
 
   @override
   String toString() {
-    return 'BlePrinterDevice{name: $name, address: $address, type: $type, bondState: $bondState, rssi: $rssi}';
+    return 'BlePrinterDevice{name: $name, address: $address, rssi: $rssi}';
   }
 
   /// | 值   | 描述                            |
@@ -59,34 +44,6 @@ class BlePrinterDevice {
   Future<bool> sendCommand(String cmd) async {
     return await HmA300BlePrinterHostApi().sendCommand(address, cmd);
   }
-
-  Future<int> encoding(String encoding) async {
-    return await HmA300BlePrinterHostApi().printerEncoding(address, encoding);
-  }
-
-  Future<int> writeData(String data) async {
-    return await HmA300BlePrinterHostApi().printerWriteData(address, data);
-  }
-
-  Future<int> line(List<String> data) async {
-    return await HmA300BlePrinterHostApi().printerLine(address, data);
-  }
-
-  Future<int> printAreaSize(List<String> data) async {
-    return await HmA300BlePrinterHostApi().printerPrintAreaSize(address, data);
-  }
-
-  Future<int> text(List<String> data) async {
-    return await HmA300BlePrinterHostApi().printerText(address, data);
-  }
-
-  Future<int> form() async {
-    return await HmA300BlePrinterHostApi().printerForm(address);
-  }
-
-  Future<int> print() async {
-    return await HmA300BlePrinterHostApi().printerPrint(address);
-  }
 }
 
 class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
@@ -106,12 +63,12 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
   static HmA300BlePrinter get instance => _singleton;
   static HmA300BlePrinter getInstance() => _singleton;
 
-  Future<String?> getHostInfo() {
-    return HmA300BlePrinterHostApi().getHostInfo();
+  Future<String?> getHostInfo() async {
+    return await HmA300BlePrinterHostApi().getHostInfo();
   }
 
   @override
-  String getFlutterInfo() {
+  Future<String> getFlutterInfo() async {
     return "Dart ${Platform.version.split(" ").first}";
   }
 
@@ -119,7 +76,7 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
 
   final _bleStateController = StreamController<int>.broadcast(
     onListen: () {
-      HmA300BlePrinterHostApi().checkState();
+      HmA300BlePrinterHostApi().checkBleState();
     },
   );
 
@@ -140,7 +97,7 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
   Stream<bool> get isScanning => _isScanningController.stream;
 
   Future<bool> startScan({
-    Duration timeout = const Duration(seconds: 10),
+    Duration timeout = const Duration(seconds: 15),
   }) async {
     _scanDevices.clear();
     _isScanningController.add(true);
@@ -161,25 +118,21 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
   Stream<BlePrinterDevice> get scanResult => _scanResultController.stream;
 
   @override
-  void onStateChanged(Map<dynamic, dynamic> map) {
-    print('hm_a300_ble_printer.dart~onStateChanged: $map');
+  Future<void> onBleStateChanged(Map<dynamic, dynamic> map) async {
+    print('hm_a300_ble_printer.dart~onBleStateChanged: $map');
     final state = map['state'] ?? 0;
     _bleStateController.add(state);
   }
 
   @override
-  void onFound(Map<dynamic, dynamic> map) {
+  Future<void> onFound(Map<dynamic, dynamic> map) async {
     print('hm_a300_ble_printer.dart~onFound: $map');
     final name = map['name'];
     final address = map['address'];
-    final type = map['type'] ?? 0;
-    final bondState = map['bondState'] ?? 10;
     final rssi = map['rssi'];
     final device = BlePrinterDevice(
       name: name,
       address: address,
-      type: type,
-      bondState: bondState,
       rssi: rssi,
     );
     _scanDevices.add(device);
@@ -187,7 +140,7 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
   }
 
   @override
-  void onDiscoveryFinished(Map<dynamic, dynamic> map) {
+  Future<void> onDiscoveryFinished(Map<dynamic, dynamic> map) async {
     print('hm_a300_ble_printer.dart~onDiscoveryFinished: $map');
     _isScanningController.add(false);
   }

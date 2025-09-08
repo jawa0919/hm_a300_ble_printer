@@ -62,19 +62,12 @@ private open class MessagesPigeonCodec : StandardMessageCodec() {
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface HmA300BlePrinterHostApi {
   fun getHostInfo(callback: (Result<String>) -> Unit)
-  fun checkState()
+  fun checkBleState(callback: (Result<Unit>) -> Unit)
   fun startScan(callback: (Result<Boolean>) -> Unit)
   fun stopScan(callback: (Result<Boolean>) -> Unit)
   fun connect(address: String, callback: (Result<Long>) -> Unit)
   fun disconnect(address: String, callback: (Result<Boolean>) -> Unit)
   fun sendCommand(address: String, cmd: String, callback: (Result<Boolean>) -> Unit)
-  fun printerEncoding(address: String, encoding: String, callback: (Result<Long>) -> Unit)
-  fun printerPrintAreaSize(address: String, data: List<String>, callback: (Result<Long>) -> Unit)
-  fun printerWriteData(address: String, data: String, callback: (Result<Long>) -> Unit)
-  fun printerLine(address: String, data: List<String>, callback: (Result<Long>) -> Unit)
-  fun printerText(address: String, data: List<String>, callback: (Result<Long>) -> Unit)
-  fun printerForm(address: String, callback: (Result<Long>) -> Unit)
-  fun printerPrint(address: String, callback: (Result<Long>) -> Unit)
 
   companion object {
     /** The codec used by HmA300BlePrinterHostApi. */
@@ -104,16 +97,17 @@ interface HmA300BlePrinterHostApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.checkState$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.checkBleState$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { _, reply ->
-            val wrapped: List<Any?> = try {
-              api.checkState()
-              listOf(null)
-            } catch (exception: Throwable) {
-              MessagesPigeonUtils.wrapError(exception)
+            api.checkBleState{ result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(MessagesPigeonUtils.wrapError(error))
+              } else {
+                reply.reply(MessagesPigeonUtils.wrapResult(null))
+              }
             }
-            reply.reply(wrapped)
           }
         } else {
           channel.setMessageHandler(null)
@@ -216,151 +210,6 @@ interface HmA300BlePrinterHostApi {
           channel.setMessageHandler(null)
         }
       }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerEncoding$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val addressArg = args[0] as String
-            val encodingArg = args[1] as String
-            api.printerEncoding(addressArg, encodingArg) { result: Result<Long> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(MessagesPigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(MessagesPigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerPrintAreaSize$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val addressArg = args[0] as String
-            val dataArg = args[1] as List<String>
-            api.printerPrintAreaSize(addressArg, dataArg) { result: Result<Long> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(MessagesPigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(MessagesPigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerWriteData$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val addressArg = args[0] as String
-            val dataArg = args[1] as String
-            api.printerWriteData(addressArg, dataArg) { result: Result<Long> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(MessagesPigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(MessagesPigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerLine$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val addressArg = args[0] as String
-            val dataArg = args[1] as List<String>
-            api.printerLine(addressArg, dataArg) { result: Result<Long> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(MessagesPigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(MessagesPigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerText$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val addressArg = args[0] as String
-            val dataArg = args[1] as List<String>
-            api.printerText(addressArg, dataArg) { result: Result<Long> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(MessagesPigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(MessagesPigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerForm$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val addressArg = args[0] as String
-            api.printerForm(addressArg) { result: Result<Long> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(MessagesPigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(MessagesPigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerPrint$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val addressArg = args[0] as String
-            api.printerPrint(addressArg) { result: Result<Long> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(MessagesPigeonUtils.wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(MessagesPigeonUtils.wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
     }
   }
 }
@@ -392,10 +241,10 @@ class HmA300BlePrinterFlutterApi(private val binaryMessenger: BinaryMessenger, p
       } 
     }
   }
-  fun onStateChanged(mapArg: Map<Any, Any?>, callback: (Result<Unit>) -> Unit)
+  fun onBleStateChanged(mapArg: Map<Any, Any?>, callback: (Result<Unit>) -> Unit)
 {
     val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
-    val channelName = "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onStateChanged$separatedMessageChannelSuffix"
+    val channelName = "dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onBleStateChanged$separatedMessageChannelSuffix"
     val channel = BasicMessageChannel<Any?>(binaryMessenger, channelName, codec)
     channel.send(listOf(mapArg)) {
       if (it is List<*>) {

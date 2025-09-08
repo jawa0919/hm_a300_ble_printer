@@ -61,12 +61,11 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     override fun getHostInfo(callback: (Result<String>) -> Unit) {
         fApi?.getFlutterInfo { result ->
             result.onFailure {
-                Log.d(TAG, "getFlutterInfo: $it")
-                Toast.makeText(context, it.toString(), Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "getFlutterInfo.onFailure: $it")
+                callback(Result.failure(FlutterError("getFlutterInfo.onFailure: $it")))
             }
             result.onSuccess { response ->
                 Log.d(TAG, "getFlutterInfo: $response")
-                Toast.makeText(context, response, Toast.LENGTH_SHORT).show()
                 callback(Result.success("$response-Android ${Build.VERSION.RELEASE}"))
             }
         }
@@ -125,7 +124,7 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     else if (s == BluetoothAdapter.STATE_OFF) m["state"] = 4
                     else if (s == BluetoothAdapter.STATE_TURNING_OFF) m["state"] = 1
                     else if (s == BluetoothAdapter.STATE_TURNING_ON) m["state"] = 1
-                    fApi?.onStateChanged(m) {}
+                    fApi?.onBleStateChanged(m) {}
                     fApi?.onDiscoveryFinished(mapOf()) {}
                 }
 
@@ -134,15 +133,13 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     val d = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
                     if (d == null || d.name == null || d.address == null) return
                     Log.d(TAG, "onReceive.ACTION_FOUND: $d")
-                    // FIXME: printer is classic bluetooth, not le bluetooth
+                    // FIXME: printer is classic bluetooth, not le bluetooth-打印机不是低功耗蓝牙
                     if (d.type == BluetoothDevice.DEVICE_TYPE_LE) return
                     val rssi = intent.extras?.getShort(BluetoothDevice.EXTRA_RSSI)?.toInt()
                     val m = mapOf<Any, Any?>(
                         "name" to d.name,
                         "address" to d.address,
                         "rssi" to rssi,
-                        "type" to d.type,
-                        "bondState" to d.bondState,
                     )
                     fApi?.onFound(m) {}
                 }
@@ -166,14 +163,14 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         if (grantResults.isEmpty()) return false
         grantResults.map {
             if (it != PackageManager.PERMISSION_GRANTED) {
-                fApi?.onStateChanged(mapOf<Any, Any?>("state" to 3)) {}
+                fApi?.onBleStateChanged(mapOf<Any, Any?>("state" to 3)) {}
                 return true
             }
         }
         bleAdapter?.let {
-            fApi?.onStateChanged(mapOf<Any, Any?>("state" to if (it.isEnabled) 5 else 4)) {}
+            fApi?.onBleStateChanged(mapOf<Any, Any?>("state" to if (it.isEnabled) 5 else 4)) {}
         } ?: {
-            fApi?.onStateChanged(mapOf<Any, Any?>("state" to 0)) {}
+            fApi?.onBleStateChanged(mapOf<Any, Any?>("state" to 0)) {}
         }
         return true
     }
@@ -202,17 +199,17 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     }
 
     private val pRequestCodeCode = 30919
-    override fun checkState() {
+    override fun checkBleState(callback: (Result<Unit>) -> Unit) {
         bleAdapter?.let {
             val pList = neededPermission()
             if (pList.isEmpty()) {
-                fApi?.onStateChanged(mapOf<Any, Any?>("state" to if (it.isEnabled) 5 else 4)) {}
+                fApi?.onBleStateChanged(mapOf<Any, Any?>("state" to if (it.isEnabled) 5 else 4)) {}
                 return
             }
-            fApi?.onStateChanged(mapOf<Any, Any?>("state" to 3)) {}
+            fApi?.onBleStateChanged(mapOf<Any, Any?>("state" to 3)) {}
             activityBinding?.activity?.requestPermissions(pList.toTypedArray(), pRequestCodeCode)
         } ?: {
-            fApi?.onStateChanged(mapOf<Any, Any?>("state" to 0)) {}
+            fApi?.onBleStateChanged(mapOf<Any, Any?>("state" to 0)) {}
         }
     }
 
@@ -220,7 +217,8 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     override fun startScan(callback: (Result<Boolean>) -> Unit) {
         Log.d(TAG, "startScan: ")
         bleAdapter?.let { ad ->
-            callback(Result.success(ad.startDiscovery()))
+            val s = ad.startDiscovery()
+            callback(Result.success(s))
         } ?: {
             callback(Result.failure(FlutterError("BluetoothAdapter is null")))
         }
@@ -230,7 +228,8 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     override fun stopScan(callback: (Result<Boolean>) -> Unit) {
         Log.d(TAG, "stopScan: ")
         bleAdapter?.let { ad ->
-            callback(Result.success(ad.cancelDiscovery()))
+            val s = ad.cancelDiscovery()
+            callback(Result.success(s))
         } ?: {
             callback(Result.failure(FlutterError("BluetoothAdapter is null")))
         }
@@ -239,7 +238,8 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     override fun connect(address: String, callback: (Result<Long>) -> Unit) {
         Log.d(TAG, "connect: $address")
         context?.let { ct ->
-            callback(Result.success(PrinterHelper.portOpenBT(ct, address).toLong()))
+            val s = PrinterHelper.portOpenBT(ct, address).toLong()
+            callback(Result.success(s))
         } ?: {
             callback(Result.failure(Throwable("context is null")))
         }
@@ -247,7 +247,8 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     override fun disconnect(address: String, callback: (Result<Boolean>) -> Unit) {
         Log.d(TAG, "disconnect: $address")
-        callback(Result.success(PrinterHelper.portClose()))
+        val s = PrinterHelper.portClose()
+        callback(Result.success(s))
     }
 
     override fun sendCommand(address: String, cmd: String, callback: (Result<Boolean>) -> Unit) {
@@ -257,62 +258,5 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             PrinterHelper.WriteData("$c\t\n".toByteArray(charset(PrinterHelper.LanguageEncode)))
         }
         callback(Result.success(true))
-    }
-
-    override fun printerEncoding(
-        address: String, encoding: String, callback: (Result<Long>) -> Unit
-    ) {
-        callback(Result.success(PrinterHelper.Encoding(encoding).toLong()))
-    }
-
-    override fun printerPrintAreaSize(
-        address: String, data: List<String>, callback: (Result<Long>) -> Unit
-    ) {
-        if (data.size != 5) {
-            callback(Result.failure(Throwable("printAreaSize data size must 5")))
-            return
-        }
-        val r = PrinterHelper.printAreaSize(data[0], data[1], data[2], data[3], data[4]).toLong()
-        callback(Result.success(r))
-    }
-
-    override fun printerWriteData(
-        address: String, data: String, callback: (Result<Long>) -> Unit
-    ) {
-        val byteData = "$data\t\n".toByteArray(charset(PrinterHelper.LanguageEncode))
-        val r = PrinterHelper.WriteData(byteData).toLong()
-        callback(Result.success(r))
-    }
-
-    override fun printerLine(
-        address: String, data: List<String>, callback: (Result<Long>) -> Unit
-    ) {
-        if (data.size != 5) {
-            callback(Result.failure(Throwable("Line data size must 5")))
-            return
-        }
-        val r = PrinterHelper.printAreaSize(data[0], data[1], data[2], data[3], data[4]).toLong()
-        callback(Result.success(r))
-    }
-
-    override fun printerText(
-        address: String, data: List<String>, callback: (Result<Long>) -> Unit
-    ) {
-        if (data.size != 6) {
-            callback(Result.failure(Throwable("Text data size must 6")))
-            return
-        }
-        val r = PrinterHelper.Text(data[0], data[1], data[2], data[3], data[4], data[5]).toLong()
-        callback(Result.success(r))
-    }
-
-    override fun printerForm(address: String, callback: (Result<Long>) -> Unit) {
-        val r = PrinterHelper.Form().toLong()
-        callback(Result.success(r))
-    }
-
-    override fun printerPrint(address: String, callback: (Result<Long>) -> Unit) {
-        val r = PrinterHelper.Print().toLong()
-        callback(Result.success(r))
     }
 }

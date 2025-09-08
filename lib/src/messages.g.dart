@@ -88,8 +88,8 @@ class HmA300BlePrinterHostApi {
     }
   }
 
-  Future<void> checkState() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.checkState$pigeonVar_messageChannelSuffix';
+  Future<void> checkBleState() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.checkBleState$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -250,214 +250,18 @@ class HmA300BlePrinterHostApi {
       return (pigeonVar_replyList[0] as bool?)!;
     }
   }
-
-  Future<int> printerEncoding(String address, String encoding) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerEncoding$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[address, encoding]);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
-    if (pigeonVar_replyList == null) {
-      throw _createConnectionError(pigeonVar_channelName);
-    } else if (pigeonVar_replyList.length > 1) {
-      throw PlatformException(
-        code: pigeonVar_replyList[0]! as String,
-        message: pigeonVar_replyList[1] as String?,
-        details: pigeonVar_replyList[2],
-      );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (pigeonVar_replyList[0] as int?)!;
-    }
-  }
-
-  Future<int> printerPrintAreaSize(String address, List<String> data) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerPrintAreaSize$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[address, data]);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
-    if (pigeonVar_replyList == null) {
-      throw _createConnectionError(pigeonVar_channelName);
-    } else if (pigeonVar_replyList.length > 1) {
-      throw PlatformException(
-        code: pigeonVar_replyList[0]! as String,
-        message: pigeonVar_replyList[1] as String?,
-        details: pigeonVar_replyList[2],
-      );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (pigeonVar_replyList[0] as int?)!;
-    }
-  }
-
-  Future<int> printerWriteData(String address, String data) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerWriteData$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[address, data]);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
-    if (pigeonVar_replyList == null) {
-      throw _createConnectionError(pigeonVar_channelName);
-    } else if (pigeonVar_replyList.length > 1) {
-      throw PlatformException(
-        code: pigeonVar_replyList[0]! as String,
-        message: pigeonVar_replyList[1] as String?,
-        details: pigeonVar_replyList[2],
-      );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (pigeonVar_replyList[0] as int?)!;
-    }
-  }
-
-  Future<int> printerLine(String address, List<String> data) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerLine$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[address, data]);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
-    if (pigeonVar_replyList == null) {
-      throw _createConnectionError(pigeonVar_channelName);
-    } else if (pigeonVar_replyList.length > 1) {
-      throw PlatformException(
-        code: pigeonVar_replyList[0]! as String,
-        message: pigeonVar_replyList[1] as String?,
-        details: pigeonVar_replyList[2],
-      );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (pigeonVar_replyList[0] as int?)!;
-    }
-  }
-
-  Future<int> printerText(String address, List<String> data) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerText$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[address, data]);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
-    if (pigeonVar_replyList == null) {
-      throw _createConnectionError(pigeonVar_channelName);
-    } else if (pigeonVar_replyList.length > 1) {
-      throw PlatformException(
-        code: pigeonVar_replyList[0]! as String,
-        message: pigeonVar_replyList[1] as String?,
-        details: pigeonVar_replyList[2],
-      );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (pigeonVar_replyList[0] as int?)!;
-    }
-  }
-
-  Future<int> printerForm(String address) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerForm$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[address]);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
-    if (pigeonVar_replyList == null) {
-      throw _createConnectionError(pigeonVar_channelName);
-    } else if (pigeonVar_replyList.length > 1) {
-      throw PlatformException(
-        code: pigeonVar_replyList[0]! as String,
-        message: pigeonVar_replyList[1] as String?,
-        details: pigeonVar_replyList[2],
-      );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (pigeonVar_replyList[0] as int?)!;
-    }
-  }
-
-  Future<int> printerPrint(String address) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.printerPrint$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[address]);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
-    if (pigeonVar_replyList == null) {
-      throw _createConnectionError(pigeonVar_channelName);
-    } else if (pigeonVar_replyList.length > 1) {
-      throw PlatformException(
-        code: pigeonVar_replyList[0]! as String,
-        message: pigeonVar_replyList[1] as String?,
-        details: pigeonVar_replyList[2],
-      );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (pigeonVar_replyList[0] as int?)!;
-    }
-  }
 }
 
 abstract class HmA300BlePrinterFlutterApi {
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
 
-  String getFlutterInfo();
+  Future<String> getFlutterInfo();
 
-  void onStateChanged(Map<Object?, Object?> map);
+  Future<void> onBleStateChanged(Map<Object?, Object?> map);
 
-  void onFound(Map<Object?, Object?> map);
+  Future<void> onFound(Map<Object?, Object?> map);
 
-  void onDiscoveryFinished(Map<Object?, Object?> map);
+  Future<void> onDiscoveryFinished(Map<Object?, Object?> map);
 
   static void setUp(HmA300BlePrinterFlutterApi? api, {BinaryMessenger? binaryMessenger, String messageChannelSuffix = '',}) {
     messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
@@ -470,7 +274,7 @@ abstract class HmA300BlePrinterFlutterApi {
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
           try {
-            final String output = api.getFlutterInfo();
+            final String output = await api.getFlutterInfo();
             return wrapResponse(result: output);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
@@ -482,20 +286,20 @@ abstract class HmA300BlePrinterFlutterApi {
     }
     {
       final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onStateChanged$messageChannelSuffix', pigeonChannelCodec,
+          'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onBleStateChanged$messageChannelSuffix', pigeonChannelCodec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         pigeonVar_channel.setMessageHandler(null);
       } else {
         pigeonVar_channel.setMessageHandler((Object? message) async {
           assert(message != null,
-          'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onStateChanged was null.');
+          'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onBleStateChanged was null.');
           final List<Object?> args = (message as List<Object?>?)!;
           final Map<Object?, Object?>? arg_map = (args[0] as Map<Object?, Object?>?);
           assert(arg_map != null,
-              'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onStateChanged was null, expected non-null Map<Object?, Object?>.');
+              'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onBleStateChanged was null, expected non-null Map<Object?, Object?>.');
           try {
-            api.onStateChanged(arg_map!);
+            await api.onBleStateChanged(arg_map!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
@@ -520,7 +324,7 @@ abstract class HmA300BlePrinterFlutterApi {
           assert(arg_map != null,
               'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onFound was null, expected non-null Map<Object?, Object?>.');
           try {
-            api.onFound(arg_map!);
+            await api.onFound(arg_map!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
@@ -545,7 +349,7 @@ abstract class HmA300BlePrinterFlutterApi {
           assert(arg_map != null,
               'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onDiscoveryFinished was null, expected non-null Map<Object?, Object?>.');
           try {
-            api.onDiscoveryFinished(arg_map!);
+            await api.onDiscoveryFinished(arg_map!);
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);

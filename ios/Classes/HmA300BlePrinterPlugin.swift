@@ -64,10 +64,10 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         }
     }
 
-    // Flutter API接口实例
     private var fApi: HmA300BlePrinterFlutterApi?
 
-    func getHostInfo(completion: @escaping (Result<String, any Error>) -> Void) {
+    func getHostInfo(completion: @escaping (Result<String, any Error>) -> Void)
+    {
         if let api = fApi {
             api.getFlutterInfo { result in
                 switch result {
@@ -88,16 +88,16 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         return centralManager
     }()
 
-    // 用于存储扫描到的设备
     private var ptPrinters = [String: PTPrinter]()
 
-    func checkState() {
+    func checkBleState(completion: @escaping (Result<Void, any Error>) -> Void)
+    {
         let state = self.mCentralManager.state
         log.info("checkState: \(state)")
         var map = [String: Any]()
         map["state"] = state.rawValue
         if let api = fApi {
-            api.onStateChanged(map: map) {
+            api.onBleStateChanged(map: map) {
                 result in
                 switch result {
                 case .success:
@@ -107,6 +107,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
                 }
             }
         }
+        completion(Result.success(()))
     }
 
     func startScan(completion: @escaping (Result<Bool, any Error>) -> Void) {
@@ -114,17 +115,14 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         let dispatcher = PTDispatcher.share()
         dispatcher?.whenFindAllBluetooth({ pts in
             guard let temp = pts as? [PTPrinter] else { return }
-            let dataSources = temp.sorted(by: { (pt1, pt2) -> Bool in
-                return pt1.distance.floatValue < pt2.distance.floatValue
-            })
-            dataSources.forEach({ (pt) in
+            temp.forEach({ (pt) in
                 if let uuid = pt.uuid, self.ptPrinters[uuid] == nil {
                     self.ptPrinters[uuid] = pt
-                    var map = [String: Any]()
-                    map["name"] = pt.name
-                    map["address"] = pt.uuid
-                    map["rssi"] = pt.distance.intValue
                     if let api = self.fApi {
+                        var map = [String: Any]()
+                        map["name"] = pt.name
+                        map["address"] = pt.uuid
+                        map["rssi"] = pt.distance.intValue
                         api.onFound(map: map) {
                             result in
                             switch result {
@@ -138,13 +136,12 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
                 }
             })
         })
-        PTDispatcher.share()?.scanBluetooth()
+        dispatcher?.scanBluetooth()
         completion(Result.success(true))
     }
 
     func stopScan(completion: @escaping (Result<Bool, any Error>) -> Void) {
         log.info("停止扫描蓝牙设备")
-        // 获取PTDispatcher实例
         let dispatcher = PTDispatcher.share()
         dispatcher?.stopScanBluetooth()
         completion(Result.success(true))
@@ -274,74 +271,6 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         }
     }
 
-    func printerEncoding(
-        address: String,
-        encoding: String,
-        completion: @escaping (Result<Int64, any Error>) -> Void
-    ) {
-        log.info("设置编码: \(encoding) 到设备: \(address)")
-        // 简化实现，返回成功
-        completion(Result.success(0))
-    }
-
-    func printerPrintAreaSize(
-        address: String,
-        data: [String],
-        completion: @escaping (Result<Int64, any Error>) -> Void
-    ) {
-        log.info("设置打印区域大小到设备: \(address)")
-        // 简化实现，返回成功
-        completion(Result.success(0))
-    }
-
-    func printerWriteData(
-        address: String,
-        data: String,
-        completion: @escaping (Result<Int64, any Error>) -> Void
-    ) {
-        log.info("写入数据到设备: \(address)")
-        // 简化实现，返回成功
-        completion(Result.success(0))
-    }
-
-    func printerLine(
-        address: String,
-        data: [String],
-        completion: @escaping (Result<Int64, any Error>) -> Void
-    ) {
-        log.info("打印行到设备: \(address)")
-        // 简化实现，返回成功
-        completion(Result.success(0))
-    }
-
-    func printerText(
-        address: String,
-        data: [String],
-        completion: @escaping (Result<Int64, any Error>) -> Void
-    ) {
-        log.info("打印文本到设备: \(address)")
-        // 简化实现，返回成功
-        completion(Result.success(0))
-    }
-
-    func printerForm(
-        address: String,
-        completion: @escaping (Result<Int64, any Error>) -> Void
-    ) {
-        log.info("打印表单到设备: \(address)")
-        // 简化实现，返回成功
-        completion(Result.success(0))
-    }
-
-    func printerPrint(
-        address: String,
-        completion: @escaping (Result<Int64, any Error>) -> Void
-    ) {
-        log.info("执行打印操作到设备: \(address)")
-        // 简化实现，返回成功
-        completion(Result.success(0))
-    }
-
     // MARK: - CBCentralManagerDelegate方法实现
 
     // 蓝牙状态变化时调用
@@ -351,7 +280,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         var map = [String: Any]()
         map["state"] = central.state.rawValue
         if let api = fApi {
-            api.onStateChanged(map: map) {
+            api.onBleStateChanged(map: map) {
                 result in
                 switch result {
                 case .success:
@@ -371,6 +300,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         rssi RSSI: NSNumber
     ) {
         log.info("发现设备成功: \(peripheral.name ?? "未知设备")")
+        // 这里可以实现发现设备后的逻辑
     }
 
     // 连接成功时调用
