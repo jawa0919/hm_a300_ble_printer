@@ -7,6 +7,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.le.BluetoothLeScanner
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -72,6 +73,7 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         }
     }
 
+
     private var activityBinding: ActivityPluginBinding? = null
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activityBinding = binding
@@ -100,6 +102,7 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         bleAdapter = BluetoothAdapter.getDefaultAdapter()
 
         val findFilter = IntentFilter()
+        findFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
         findFilter.addAction(BluetoothDevice.ACTION_FOUND)
         findFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         context?.registerReceiver(bleReceiver, findFilter)
@@ -115,6 +118,18 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         @SuppressLint("MissingPermission")
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
+                BluetoothAdapter.ACTION_STATE_CHANGED -> {
+                    //状态变化
+                    val s = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0)
+                    val m = mutableMapOf<Any, Any?>("state" to 0)
+                    if (s == BluetoothAdapter.STATE_ON) m["state"] = 5
+                    else if (s == BluetoothAdapter.STATE_OFF) m["state"] = 4
+                    else if (s == BluetoothAdapter.STATE_TURNING_OFF) m["state"] = 1
+                    else if (s == BluetoothAdapter.STATE_TURNING_ON) m["state"] = 1
+                    fApi?.onStateChanged(m) {}
+                    fApi?.onDiscoveryFinished(mapOf()) {}
+                }
+
                 BluetoothDevice.ACTION_FOUND -> {
                     //扫描-发现设备
                     val d = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
@@ -126,9 +141,9 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     val m = mapOf<Any, Any?>(
                         "name" to d.name,
                         "address" to d.address,
+                        "rssi" to rssi,
                         "type" to d.type,
                         "bondState" to d.bondState,
-                        "rssi" to rssi,
                     )
                     fApi?.onFound(m) {}
                 }
@@ -152,11 +167,15 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         if (grantResults.isEmpty()) return false
         grantResults.map {
             if (it != PackageManager.PERMISSION_GRANTED) {
-                pCallback?.let { it(Result.success(false)) }
+                fApi?.onStateChanged(mapOf<Any, Any?>("state" to 3)) {}
                 return true
             }
         }
-        pCallback?.let { it(Result.success(true)) }
+        bleAdapter?.let {
+            fApi?.onStateChanged(mapOf<Any, Any?>("state" to if (it.isEnabled) 5 else 4)) {}
+        } ?: {
+            fApi?.onStateChanged(mapOf<Any, Any?>("state" to 0)) {}
+        }
         return true
     }
 
@@ -164,15 +183,6 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         return false
     }
 
-    override fun bleEnabled(callback: (Result<Boolean>) -> Unit) {
-        bleAdapter?.let {
-            callback(Result.success(it.isEnabled))
-        } ?: {
-            callback(Result.failure(FlutterError("BluetoothAdapter is null")))
-        }
-    }
-
-    private var pCallback: ((Result<Boolean>) -> Unit)? = null
     private fun neededPermission(): ArrayList<String> {
         val permissions = ArrayList<String>()
         if (Build.VERSION.SDK_INT <= 30) { // Android 11 (September 2020)
@@ -193,18 +203,19 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     }
 
     private val pRequestCodeCode = 30919
-    override fun blePermission(callback: (Result<Boolean>) -> Unit) {
-        val pList = neededPermission()
-        if (pList.isEmpty()) {
-            callback(Result.success(true))
-            return
-        }
-        activityBinding?.activity?.let {
-            pCallback = callback
-            it.requestPermissions(pList.toTypedArray(), pRequestCodeCode)
+    override fun checkState() {
+        bleAdapter?.let {
+            val pList = neededPermission()
+            if (pList.isEmpty()) {
+                fApi?.onStateChanged(mapOf<Any, Any?>("state" to if (it.isEnabled) 5 else 4)) {}
+                return
+            }
+            fApi?.onStateChanged(mapOf<Any, Any?>("state" to 3)) {}
+            activityBinding?.activity?.requestPermissions(pList.toTypedArray(), pRequestCodeCode)
+        } ?: {
+            fApi?.onStateChanged(mapOf<Any, Any?>("state" to 0)) {}
         }
     }
-
 
     @SuppressLint("MissingPermission")
     override fun startScan(callback: (Result<Boolean>) -> Unit) {

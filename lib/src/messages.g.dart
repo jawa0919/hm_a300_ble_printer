@@ -88,8 +88,8 @@ class HmA300BlePrinterHostApi {
     }
   }
 
-  Future<bool> bleEnabled() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.bleEnabled$pigeonVar_messageChannelSuffix';
+  Future<void> checkState() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.checkState$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -106,41 +106,8 @@ class HmA300BlePrinterHostApi {
         message: pigeonVar_replyList[1] as String?,
         details: pigeonVar_replyList[2],
       );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
     } else {
-      return (pigeonVar_replyList[0] as bool?)!;
-    }
-  }
-
-  Future<bool> blePermission() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterHostApi.blePermission$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
-    if (pigeonVar_replyList == null) {
-      throw _createConnectionError(pigeonVar_channelName);
-    } else if (pigeonVar_replyList.length > 1) {
-      throw PlatformException(
-        code: pigeonVar_replyList[0]! as String,
-        message: pigeonVar_replyList[1] as String?,
-        details: pigeonVar_replyList[2],
-      );
-    } else if (pigeonVar_replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (pigeonVar_replyList[0] as bool?)!;
+      return;
     }
   }
 
@@ -486,6 +453,8 @@ abstract class HmA300BlePrinterFlutterApi {
 
   String getFlutterInfo();
 
+  void onStateChanged(Map<Object?, Object?> map);
+
   void onFound(Map<Object?, Object?> map);
 
   void onDiscoveryFinished(Map<Object?, Object?> map);
@@ -503,6 +472,31 @@ abstract class HmA300BlePrinterFlutterApi {
           try {
             final String output = api.getFlutterInfo();
             return wrapResponse(result: output);
+          } on PlatformException catch (e) {
+            return wrapResponse(error: e);
+          }          catch (e) {
+            return wrapResponse(error: PlatformException(code: 'error', message: e.toString()));
+          }
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onStateChanged$messageChannelSuffix', pigeonChannelCodec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        pigeonVar_channel.setMessageHandler(null);
+      } else {
+        pigeonVar_channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+          'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onStateChanged was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final Map<Object?, Object?>? arg_map = (args[0] as Map<Object?, Object?>?);
+          assert(arg_map != null,
+              'Argument for dev.flutter.pigeon.hm_a300_ble_printer.HmA300BlePrinterFlutterApi.onStateChanged was null, expected non-null Map<Object?, Object?>.');
+          try {
+            api.onStateChanged(arg_map!);
+            return wrapResponse(empty: true);
           } on PlatformException catch (e) {
             return wrapResponse(error: e);
           }          catch (e) {

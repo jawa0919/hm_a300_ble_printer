@@ -18,11 +18,7 @@ abstract class HmA300BlePrinterHostApi {
   @async
   String getHostInfo();
   // ##########################################################################
-  @async
-  bool bleEnabled();
-
-  @async
-  bool blePermission();
+  void checkState();
 
   @async
   bool startScan();
@@ -67,6 +63,7 @@ abstract class HmA300BlePrinterFlutterApi {
   String getFlutterInfo();
   // ##########################################################################
 
+  void onStateChanged(Map map);
   void onFound(Map map);
   void onDiscoveryFinished(Map map);
   // void onReceivedData(Map map);

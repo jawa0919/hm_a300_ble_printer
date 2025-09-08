@@ -33,6 +33,7 @@ class Logger {
 let log = Logger.shared
 
 public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHostApi, CBCentralManagerDelegate {
+   
     
     // 初始化CBCentralManager并设置代理为当前类
     private lazy var mCentralManager: CBCentralManager = {
@@ -50,45 +51,24 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
         completion(Result.success("iOS " + UIDevice.current.systemVersion))
     }
     
-    func bleEnabled(completion: @escaping (Result<Bool, any Error>) -> Void) {
+    func checkState() {
         let state = self.mCentralManager.state
-        log.info("bleEnabled: \(state)")
-        switch state {
-        case .poweredOn:
-            log.info("蓝牙已启用")
-            completion(Result.success(true))
-        case .poweredOff:
-            log.info("蓝牙已关闭")
-            completion(Result.success(false))
-        case .unsupported:
-            log.error("设备不支持蓝牙")
-            completion(Result.failure(PigeonError(code: "ble-unsupported", message: "设备不支持蓝牙", details: nil)))
-        case .unauthorized:
-            log.error("未授权使用蓝牙")
-            completion(Result.failure(PigeonError(code: "ble-unauthorized", message: "未授权使用蓝牙", details: nil)))
-        case .unknown:
-            log.warning("蓝牙状态未知")
-            completion(Result.failure(PigeonError(code: "ble-unknown", message: "蓝牙状态未知", details: nil)))
-        case .resetting:
-            log.warning("蓝牙正在重置")
-            completion(Result.failure(PigeonError(code: "ble-resetting", message: "蓝牙正在重置", details: nil)))
-        @unknown default:
-            log.error("未知的蓝牙状态")
-            completion(Result.failure(PigeonError(code: "ble-unknown-state", message: "未知的蓝牙状态", details: nil)))
+        log.info("checkState: \(state)")
+        var map = [String: Any]()
+        map["state"] = state.rawValue
+        if let api = fApi {
+            api.onStateChanged(map: map) {
+                result in
+                switch result {
+                case .success:
+                    log.info("checkState成功通知Flutter蓝牙状态更新")
+                case .failure(let error):
+                    log.error("checkState通知Flutter蓝牙状态更新失败: \(error)")
+                }
+            }
         }
     }
-    
-    func blePermission(completion: @escaping (Result<Bool, any Error>) -> Void) {
-        let state = self.mCentralManager.state
-        log.info("blePermission: \(state)")
-        switch state {
-        case .unauthorized:
-            completion(Result.success(false))
-        default:
-            completion(Result.success(true))
-        }
-    }
-    
+ 
     func startScan(completion: @escaping (Result<Bool, any Error>) -> Void) {
         log.info("开始扫描蓝牙设备")
         let options = [CBCentralManagerScanOptionAllowDuplicatesKey: false]
@@ -187,15 +167,28 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
         log.info("蓝牙状态更新: \(central.state)")
         // 这里可以根据需要发送状态变化通知给Flutter
+        var map = [String: Any]()
+        map["state"] = central.state.rawValue
+        if let api = fApi {
+            api.onStateChanged(map: map) {
+                result in
+                switch result {
+                case .success:
+                    log.info("成功通知Flutter蓝牙状态更新")
+                case .failure(let error):
+                    log.error("通知Flutter蓝牙状态更新失败: \(error)")
+                }
+            }
+        }
     }
     
     // 发现设备时调用
     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         // 避免重复处理相同设备
-        if peripherals[peripheral] == nil {
+        if peripherals[peripheral] == nil && peripheral.name != nil {
             // 构建设备信息字典
             var deviceInfo = [String: Any]()
-            deviceInfo["name"] = peripheral.name ?? "未知设备"
+            deviceInfo["name"] = peripheral.name
             deviceInfo["address"] = peripheral.identifier.uuidString
             deviceInfo["rssi"] = RSSI.intValue
             deviceInfo["manufacturerData"] = advertisementData[CBAdvertisementDataManufacturerDataKey]

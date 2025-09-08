@@ -117,13 +117,24 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
 
   // ##########################################################################
 
-  Future<bool> checkBluetoothState() async {
-    final isCheck = await HmA300BlePrinterHostApi().blePermission();
-    if (!isCheck) return Future.error("Bluetooth Permission Failed");
-    final isOpen = await HmA300BlePrinterHostApi().bleEnabled();
-    if (!isOpen) return Future.error("Bluetooth Enabled Failed");
-    return true;
-  }
+  final _bleStateController = StreamController<int>.broadcast(
+    onListen: () {
+      HmA300BlePrinterHostApi().checkState();
+    },
+  );
+
+  /// case unknown = 0
+  ///
+  /// case resetting = 1
+  ///
+  /// case unsupported = 2
+  ///
+  /// case unauthorized = 3
+  ///
+  /// case poweredOff = 4
+  ///
+  /// case poweredOn = 5
+  Stream<int> get bleState => _bleStateController.stream;
 
   final _isScanningController = StreamController<bool>.broadcast();
   Stream<bool> get isScanning => _isScanningController.stream;
@@ -150,7 +161,15 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
   Stream<BlePrinterDevice> get scanResult => _scanResultController.stream;
 
   @override
+  void onStateChanged(Map<dynamic, dynamic> map) {
+    print('hm_a300_ble_printer.dart~onStateChanged: $map');
+    final state = map['state'] ?? 0;
+    _bleStateController.add(state);
+  }
+
+  @override
   void onFound(Map<dynamic, dynamic> map) {
+    print('hm_a300_ble_printer.dart~onFound: $map');
     final name = map['name'];
     final address = map['address'];
     final type = map['type'] ?? 0;
@@ -169,6 +188,7 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
 
   @override
   void onDiscoveryFinished(Map<dynamic, dynamic> map) {
+    print('hm_a300_ble_printer.dart~onDiscoveryFinished: $map');
     _isScanningController.add(false);
   }
 }

@@ -28,13 +28,22 @@ class _MyAppState extends State<MyApp> {
     _plg.getHostInfo().then((r) {
       debugPrint('main.dart~getHostInfo: $r');
     });
-    _plg.checkBluetoothState().then((r) {
-      debugPrint('main.dart~checkBluetoothState: $r');
-      _stateStr = "On";
-      setState(() {});
-    }).catchError((e) {
-      debugPrint('main.dart~checkBluetoothState.error: $e');
-      _stateStr = e.toString();
+    _plg.bleState.listen((r) {
+      debugPrint('main.dart~bleState: $r');
+      _stateStr = "Unknown";
+      if (r == 0) {
+        _stateStr = "Unknown";
+      } else if (r == 1) {
+        _stateStr = "Resetting";
+      } else if (r == 2) {
+        _stateStr = "Unsupported";
+      } else if (r == 3) {
+        _stateStr = "Unauthorized";
+      } else if (r == 4) {
+        _stateStr = "PoweredOff";
+      } else if (r == 5) {
+        _stateStr = "PoweredOn";
+      }
       setState(() {});
     });
     _scanResultsSubscription = _plg.scanResult.listen((d) {
@@ -55,7 +64,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (_stateStr != "On") {
+    if (_stateStr != "PoweredOn") {
       return Scaffold(body: Center(child: Text(_stateStr)));
     }
     return Scaffold(
