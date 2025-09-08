@@ -36,6 +36,51 @@ let log = Logger.shared
 public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
     HmA300BlePrinterHostApi, CBCentralManagerDelegate
 {
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(
+            name: "hm_a300_ble_printer",
+            binaryMessenger: registrar.messenger()
+        )
+        let instance = HmA300BlePrinterPlugin()
+        registrar.addMethodCallDelegate(instance, channel: channel)
+        HmA300BlePrinterHostApiSetup.setUp(
+            binaryMessenger: registrar.messenger(),
+            api: instance
+        )
+        instance.fApi = HmA300BlePrinterFlutterApi(
+            binaryMessenger: registrar.messenger()
+        )
+    }
+
+    public func handle(
+        _ call: FlutterMethodCall,
+        result: @escaping FlutterResult
+    ) {
+        switch call.method {
+        case "getPlatformVersion":
+            result("iOS " + UIDevice.current.systemVersion)
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
+
+    // Flutter API接口实例
+    private var fApi: HmA300BlePrinterFlutterApi?
+
+    func getHostInfo(completion: @escaping (Result<String, any Error>) -> Void) {
+        if let api = fApi {
+            api.getFlutterInfo { result in
+                switch result {
+                case .success(let flutterInfo):
+                    let iosVersion = UIDevice.current.systemVersion
+                    let combinedInfo = "\(flutterInfo)-iOS: \(iosVersion)"
+                    completion(Result.success(combinedInfo))
+                case .failure(let error):
+                    log.error("获取Flutter信息失败: \(error)")
+                }
+            }
+        }
+    }
 
     // 初始化CBCentralManager并设置代理为当前类
     private lazy var mCentralManager: CBCentralManager = {
@@ -45,13 +90,6 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
 
     // 用于存储扫描到的设备
     private var ptPrinters = [String: PTPrinter]()
-
-    // Flutter API接口实例
-    private var fApi: HmA300BlePrinterFlutterApi?
-
-    func getHostInfo(completion: @escaping (Result<String, any Error>) -> Void) {
-        completion(Result.success("iOS " + UIDevice.current.systemVersion))
-    }
 
     func checkState() {
         let state = self.mCentralManager.state
@@ -302,35 +340,6 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         log.info("执行打印操作到设备: \(address)")
         // 简化实现，返回成功
         completion(Result.success(0))
-    }
-
-    public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(
-            name: "hm_a300_ble_printer",
-            binaryMessenger: registrar.messenger()
-        )
-        let instance = HmA300BlePrinterPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel)
-        HmA300BlePrinterHostApiSetup.setUp(
-            binaryMessenger: registrar.messenger(),
-            api: instance
-        )
-        // 使用instance实例而不是self来初始化fApi，因为self在静态方法中指向类本身而不是实例
-        instance.fApi = HmA300BlePrinterFlutterApi(
-            binaryMessenger: registrar.messenger()
-        )
-    }
-
-    public func handle(
-        _ call: FlutterMethodCall,
-        result: @escaping FlutterResult
-    ) {
-        switch call.method {
-        case "getPlatformVersion":
-            result("iOS " + UIDevice.current.systemVersion)
-        default:
-            result(FlutterMethodNotImplemented)
-        }
     }
 
     // MARK: - CBCentralManagerDelegate方法实现
