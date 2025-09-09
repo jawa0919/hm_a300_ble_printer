@@ -14,7 +14,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import cpcl.PrinterHelper
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -252,11 +251,16 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
     }
 
     override fun sendCommand(address: String, cmd: String, callback: (Result<Boolean>) -> Unit) {
-        PrinterHelper.Encoding("gb2312")
-        val cList = cmd.split("\t\n")
-        for (c in cList) {
-            PrinterHelper.WriteData("$c\t\n".toByteArray(charset(PrinterHelper.LanguageEncode)))
+        try {
+            PrinterHelper.Encoding("gb2312")
+            val cList = cmd.split("\t\n")
+            for (c in cList) {
+                PrinterHelper.WriteData("$c\t\n".toByteArray(charset(PrinterHelper.LanguageEncode)))
+            }
+            callback(Result.success(true))
+        } catch (ex: Exception) {
+            Log.e(TAG, "sendCommand: ", ex)
+            callback(Result.success(false))
         }
-        callback(Result.success(true))
     }
 }

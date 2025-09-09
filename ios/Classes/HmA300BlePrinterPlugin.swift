@@ -30,32 +30,19 @@ class Logger {
     }
 }
 
-// 为了方便使用，创建全局实例
 let log = Logger.shared
 
-public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
-    HmA300BlePrinterHostApi, CBCentralManagerDelegate
-{
+public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHostApi, CBCentralManagerDelegate {
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(
-            name: "hm_a300_ble_printer",
-            binaryMessenger: registrar.messenger()
-        )
+        let channel = FlutterMethodChannel(name: "hm_a300_ble_printer", binaryMessenger: registrar.messenger())
         let instance = HmA300BlePrinterPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
-        HmA300BlePrinterHostApiSetup.setUp(
-            binaryMessenger: registrar.messenger(),
-            api: instance
-        )
-        instance.fApi = HmA300BlePrinterFlutterApi(
-            binaryMessenger: registrar.messenger()
-        )
+        
+        HmA300BlePrinterHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: instance)
+        instance.fApi = HmA300BlePrinterFlutterApi(binaryMessenger: registrar.messenger())
     }
 
-    public func handle(
-        _ call: FlutterMethodCall,
-        result: @escaping FlutterResult
-    ) {
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "getPlatformVersion":
             result("iOS " + UIDevice.current.systemVersion)
@@ -66,8 +53,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
 
     private var fApi: HmA300BlePrinterFlutterApi?
 
-    func getHostInfo(completion: @escaping (Result<String, any Error>) -> Void)
-    {
+    func getHostInfo(completion: @escaping (Result<String, any Error>) -> Void) {
         if let api = fApi {
             api.getFlutterInfo { result in
                 switch result {
@@ -90,8 +76,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
 
     private var ptPrinters = [String: PTPrinter]()
 
-    func checkBleState(completion: @escaping (Result<Void, any Error>) -> Void)
-    {
+    func checkBleState(completion: @escaping (Result<Void, any Error>) -> Void) {
         let state = self.mCentralManager.state
         log.info("checkState: \(state)")
         var map = [String: Any]()
@@ -147,10 +132,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         completion(Result.success(true))
     }
 
-    func connect(
-        address: String,
-        completion: @escaping (Result<Int64, any Error>) -> Void
-    ) {
+    func connect(address: String, completion: @escaping (Result<Int64, any Error>) -> Void) {
         log.info("连接设备: \(address)")
         if ptPrinters.keys.contains(address) {
             let tPrinter = ptPrinters[address]
@@ -186,10 +168,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         }
     }
 
-    func disconnect(
-        address: String,
-        completion: @escaping (Result<Bool, any Error>) -> Void
-    ) {
+    func disconnect(address: String, completion: @escaping (Result<Bool, any Error>) -> Void) {
         log.info("断开连接: \(address)")
         let dispatcher = PTDispatcher.share()
         if let connectedPrinter = dispatcher?.printerConnected {
@@ -225,11 +204,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
         }
     }
 
-    func sendCommand(
-        address: String,
-        cmd: String,
-        completion: @escaping (Result<Bool, any Error>) -> Void
-    ) {
+    func sendCommand(address: String, cmd: String, completion: @escaping (Result<Bool, any Error>) -> Void) {
         log.info("发送命令: \(cmd) 到设备: \(address)")
         let dispatcher = PTDispatcher.share()
         if let connectedPrinter = dispatcher?.printerConnected {
@@ -246,7 +221,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
                 pc.appendCommand(cmd)
                 dispatcher?.send(pc.cmdData as Data)
             } else {
-                log.error("当前连接的打印机UUID与请求断开的地址不匹配")
+                log.error("当前连接的打印机UUID与发送命令的地址不匹配")
                 completion(
                     Result.failure(
                         PigeonError(
@@ -304,10 +279,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin,
     }
 
     // 连接成功时调用
-    public func centralManager(
-        _ central: CBCentralManager,
-        didConnect peripheral: CBPeripheral
-    ) {
+    public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         log.info("连接设备成功: \(peripheral.name ?? "未知设备")")
         // 这里可以实现连接成功后的逻辑
     }
