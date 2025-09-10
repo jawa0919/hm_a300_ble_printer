@@ -37,7 +37,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
         let channel = FlutterMethodChannel(name: "hm_a300_ble_printer", binaryMessenger: registrar.messenger())
         let instance = HmA300BlePrinterPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
-        
+
         HmA300BlePrinterHostApiSetup.setUp(binaryMessenger: registrar.messenger(), api: instance)
         instance.fApi = HmA300BlePrinterFlutterApi(binaryMessenger: registrar.messenger())
     }
@@ -103,24 +103,36 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
             temp.forEach({ (pt) in
                 if let uuid = pt.uuid, self.ptPrinters[uuid] == nil {
                     self.ptPrinters[uuid] = pt
-                    if let api = self.fApi {
-                        var map = [String: Any]()
-                        map["name"] = pt.name
-                        map["address"] = pt.uuid
-                        map["rssi"] = pt.distance.intValue
-                        api.onFound(map: map) {
-                            result in
-                            switch result {
-                            case .success:
-                                log.info("成功通知Flutter发现设备")
-                            case .failure(let error):
-                                log.error("通知Flutter发现设备失败: \(error)")
-                            }
+                    var map = [String: Any]()
+                    map["name"] = pt.name
+                    map["address"] = pt.uuid
+                    map["rssi"] = pt.distance.intValue
+                    self.fApi?.onFound(map: map) {
+                        result in
+                        switch result {
+                        case .success:
+                           log.info("通知Flutter发现设备-成功")
+                        case .failure(let error):
+                            log.error("通知Flutter发现设备失败: \(error)")
                         }
                     }
+
                 }
             })
+
         })
+        self.ptPrinters.removeAll()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
+            dispatcher?.stopScanBluetooth()
+            self.fApi?.onDiscoveryFinished(map: [String: Any]()) { result in
+                switch result {
+                case .success:
+                    log.info("通知Flutter扫描结束-成功")
+                case .failure(let error):
+                    log.error("通知Flutter扫描结束-失败: \(error)")
+                }
+            }
+        }
         dispatcher?.scanBluetooth()
         completion(Result.success(true))
     }
@@ -134,37 +146,39 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
 
     func connect(address: String, completion: @escaping (Result<Int64, any Error>) -> Void) {
         log.info("连接设备: \(address)")
+        let dispatcher = PTDispatcher.share()
         if ptPrinters.keys.contains(address) {
             let tPrinter = ptPrinters[address]
-            let dispatcher = PTDispatcher.share()
             dispatcher?.whenConnectSuccess({
                 log.info("打印机连接成功")
                 completion(Result.success(0))
             })
             dispatcher?.whenConnectFailureWithErrorBlock({ (error) in
                 log.error("打印机连接失败: \(error.rawValue)")
-                completion(
-                    Result.failure(
-                        PigeonError(
-                            code: "connect-failed",
-                            message: "连接失败",
-                            details: nil
-                        )
-                    )
-                )
+                completion(Result.success(Int64(error.rawValue)))
             })
             dispatcher?.connect(tPrinter)
         } else {
-            log.error("未找到地址为: \(address) 的设备")
-            completion(
-                Result.failure(
-                    PigeonError(
-                        code: "device-not-found",
-                        message: "未找到对应设备",
-                        details: nil
-                    )
-                )
-            )
+            dispatcher?.whenFindAllBluetooth({ pts in
+                guard let temp = pts as? [PTPrinter] else { return }
+                temp.forEach({ (tPrinter) in
+                    if tPrinter.uuid == address {
+                        dispatcher?.whenConnectSuccess({
+                            log.info("打印机连接成功")
+                            completion(Result.success(0))
+                        })
+                        dispatcher?.whenConnectFailureWithErrorBlock({ (error) in
+                            log.error("打印机连接失败: \(error.rawValue)")
+                            completion(Result.success(Int64(error.rawValue)))
+                        })
+                        dispatcher?.connect(tPrinter)
+                    }
+                })
+            })
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                dispatcher?.stopScanBluetooth()
+            }
+            dispatcher?.scanBluetooth()
         }
     }
 
@@ -180,27 +194,11 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
                 dispatcher?.disconnect()
             } else {
                 log.error("当前连接的打印机UUID与请求断开的地址不匹配")
-                completion(
-                    Result.failure(
-                        PigeonError(
-                            code: "not-connected",
-                            message: "该设备未连接",
-                            details: nil
-                        )
-                    )
-                )
+                completion(Result.success(false))
             }
         } else {
             log.error("当前没有已连接的打印机")
-            completion(
-                Result.failure(
-                    PigeonError(
-                        code: "no-printer-connected",
-                        message: "当前没有已连接的打印机",
-                        details: nil
-                    )
-                )
-            )
+            completion(Result.success(false))
         }
     }
 
@@ -222,27 +220,11 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
                 dispatcher?.send(pc.cmdData as Data)
             } else {
                 log.error("当前连接的打印机UUID与发送命令的地址不匹配")
-                completion(
-                    Result.failure(
-                        PigeonError(
-                            code: "not-connected",
-                            message: "该设备未连接",
-                            details: nil
-                        )
-                    )
-                )
+                completion(Result.success(false))
             }
         } else {
             log.error("当前没有已连接的打印机")
-            completion(
-                Result.failure(
-                    PigeonError(
-                        code: "no-printer-connected",
-                        message: "当前没有已连接的打印机",
-                        details: nil
-                    )
-                )
-            )
+            completion(Result.success(false))
         }
     }
 

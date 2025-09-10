@@ -131,15 +131,16 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                     //扫描-发现设备
                     val d = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
                     if (d == null || d.name == null || d.address == null) return
-                    Log.d(TAG, "onReceive.ACTION_FOUND: $d")
                     // FIXME: printer is classic bluetooth, not le bluetooth-打印机不是低功耗蓝牙
                     if (d.type == BluetoothDevice.DEVICE_TYPE_LE) return
+                    if (ptPrinters.containsKey(d.address)) return
                     val rssi = intent.extras?.getShort(BluetoothDevice.EXTRA_RSSI)?.toInt()
                     val m = mapOf<Any, Any?>(
                         "name" to d.name,
                         "address" to d.address,
                         "rssi" to rssi,
                     )
+                    ptPrinters[d.address] = m
                     fApi?.onFound(m) {}
                 }
 
@@ -212,10 +213,13 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         }
     }
 
+    private var ptPrinters: MutableMap<String, Map<Any, Any?>> = mutableMapOf()
+
     @SuppressLint("MissingPermission")
     override fun startScan(callback: (Result<Boolean>) -> Unit) {
         Log.d(TAG, "startScan: ")
         bleAdapter?.let { ad ->
+            ptPrinters.clear()
             val s = ad.startDiscovery()
             callback(Result.success(s))
         } ?: {
@@ -236,6 +240,7 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     override fun connect(address: String, callback: (Result<Long>) -> Unit) {
         Log.d(TAG, "connect: $address")
+        // ptPrinters[address] 不需要校验附近，不在附近就连接超时
         context?.let { ct ->
             val s = PrinterHelper.portOpenBT(ct, address).toLong()
             callback(Result.success(s))
@@ -246,12 +251,14 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     override fun disconnect(address: String, callback: (Result<Boolean>) -> Unit) {
         Log.d(TAG, "disconnect: $address")
+        // ptPrinters[address] 不需要校验附近，内部有绑定address
         val s = PrinterHelper.portClose()
         callback(Result.success(s))
     }
 
     override fun sendCommand(address: String, cmd: String, callback: (Result<Boolean>) -> Unit) {
         try {
+            // ptPrinters[address] 不需要校验附近，内部有绑定address
             PrinterHelper.Encoding("gb2312")
             val cList = cmd.split("\t\n")
             for (c in cList) {

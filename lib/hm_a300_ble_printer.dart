@@ -5,8 +5,8 @@ import 'package:flutter/services.dart';
 
 import '../src/messages.g.dart';
 
-class BlePrinterDevice {
-  BlePrinterDevice({
+class BlePrinter {
+  BlePrinter({
     required this.name,
     required this.address,
     required this.rssi,
@@ -17,8 +17,35 @@ class BlePrinterDevice {
   final int rssi;
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BlePrinter &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          address == other.address;
+
+  @override
+  int get hashCode => name.hashCode ^ address.hashCode;
+
+  factory BlePrinter.fromJson(Map<String, dynamic> json) {
+    return BlePrinter(
+      name: json['name'],
+      address: json['address'],
+      rssi: json['rssi'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'address': address,
+      'rssi': rssi,
+    };
+  }
+
+  @override
   String toString() {
-    return 'BlePrinterDevice{name: $name, address: $address, rssi: $rssi}';
+    return toJson().toString();
   }
 
   /// | 值   | 描述                            |
@@ -74,12 +101,6 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
 
   // ##########################################################################
 
-  final _bleStateController = StreamController<int>.broadcast(
-    onListen: () {
-      HmA300BlePrinterHostApi().checkBleState();
-    },
-  );
-
   /// case unknown = 0
   ///
   /// case resetting = 1
@@ -92,16 +113,18 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
   ///
   /// case poweredOn = 5
   Stream<int> get bleState => _bleStateController.stream;
+  final _bleStateController = StreamController<int>.broadcast(
+    onListen: () {
+      HmA300BlePrinterHostApi().checkBleState();
+    },
+  );
 
-  final _isScanningController = StreamController<bool>.broadcast();
   Stream<bool> get isScanning => _isScanningController.stream;
+  final _isScanningController = StreamController<bool>.broadcast();
 
-  Future<bool> startScan({
-    Duration timeout = const Duration(seconds: 15),
-  }) async {
+  Future<bool> startScan() async {
     _scanDevices.clear();
     _isScanningController.add(true);
-    Future.delayed(timeout, stopScan);
     final s = await HmA300BlePrinterHostApi().startScan();
     return s;
   }
@@ -112,10 +135,10 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
     return s;
   }
 
-  final List<BlePrinterDevice> _scanDevices = [];
-  List<BlePrinterDevice> get scanDevices => _scanDevices;
-  final _scanResultController = StreamController<BlePrinterDevice>.broadcast();
-  Stream<BlePrinterDevice> get scanResult => _scanResultController.stream;
+  final Map<String, BlePrinter> _scanDevices = {};
+  List<BlePrinter> get scanDevices => _scanDevices.values.toList();
+  final _scanResultController = StreamController<List<BlePrinter>>.broadcast();
+  Stream<List<BlePrinter>> get scanResult => _scanResultController.stream;
 
   @override
   Future<void> onBleStateChanged(Map<dynamic, dynamic> map) async {
@@ -130,13 +153,13 @@ class HmA300BlePrinter extends HmA300BlePrinterFlutterApi {
     final name = map['name'];
     final address = map['address'];
     final rssi = map['rssi'];
-    final device = BlePrinterDevice(
+    final device = BlePrinter(
       name: name,
       address: address,
       rssi: rssi,
     );
-    _scanDevices.add(device);
-    _scanResultController.add(device);
+    _scanDevices[device.address] = device;
+    _scanResultController.add(_scanDevices.values.toList());
   }
 
   @override
