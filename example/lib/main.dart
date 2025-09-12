@@ -250,8 +250,7 @@ class _DevicePageState extends State<DevicePage> {
   ListTile _buildExample1(BuildContext context) {
 //       BlueToothName: HM-A300-55ea
 //       MacAddress: 00:15:83:CE:55:EA
-    final cmdStr = """
-! 0 200 200 304 1
+    final cmdStr = """! 0 200 200 304 1
 LINE 0 236 528 236 1
 T 8 0 0 248 测试备注
 T 8 0 0 196 微信扫码查看最新产品
@@ -278,18 +277,44 @@ PRINT""";
   }
 
   Widget _buildExample2(BuildContext context) {
-    return Container();
-    // return ListTile(
-    //   title: Text("Example-2"),
-    //   subtitle: Text(""),
-    //   trailing: Icon(Icons.print),
-    //   onTap: () {
-    //     widget.device.sendCommand("! 0 200 200 304 1").then((r) {
-    //       debugPrint('main.dart~print: $r');
-    //     }).catchError((e) {
-    //       debugPrint('main.dart~print: error: $e');
-    //     });
-    //   },
-    // );
+//       BlueToothName: HM-A300-55ea
+//       MacAddress: 00:15:83:CE:55:EA
+    final cmdStr = """! 0 200 200 448 1
+PAGE - WIDTH 640
+SETMAG 2 2
+SETBOLD 2
+T 4 0 0 10 测试店铺
+B QR 410 90 M 2 U 4
+MA,https://shop.duibu.cn/goods?shopId=1719898702048043010&goodsId=1904442451296854018&neadendPreview=1
+ENDQR
+SETMAG 1 1
+T 4 0 528 285 米
+SETMAG 2 2
+T 4 0 464 265 10
+LEFT
+SETMAG 1 1
+SETBOLD 0
+T 5 0 0 80 品名：T9999
+T 5 0 0 121 编号：-
+T 5 0 0 162 缸号：-
+T 5 0 0 203 色号:3#
+T 5 0 0 244 幅宽：-
+T 5 0 0 285 克重：-
+T 3 0 0 380 觉得junkyard
+SETMAG 0 0
+FORM
+PRINT""";
+    return ListTile(
+      title: Text("Example-2"),
+      subtitle: Text(cmdStr),
+      trailing: Icon(Icons.print),
+      onTap: () {
+        widget.device.sendCommand(cmdStr).then((r) {
+          debugPrint('main.dart~print: $r');
+        }).catchError((e) {
+          debugPrint('main.dart~print: error: $e');
+        });
+      },
+    );
   }
 }
