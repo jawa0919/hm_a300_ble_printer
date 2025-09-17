@@ -222,10 +222,11 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
         Log.d(TAG, "startScan: ")
         bleAdapter?.let { ad ->
             ptPrinters.clear()
-            Handler(Looper.getMainLooper()).postDelayed({
-                ad.cancelDiscovery()
-                fApi?.onDiscoveryFinished(mapOf()) {}
-            }, 15000)
+            // FIXME: 经典蓝牙，有自动关闭，取消自动关闭
+//            Handler(Looper.getMainLooper()).postDelayed({
+//                ad.cancelDiscovery()
+//                fApi?.onDiscoveryFinished(mapOf()) {}
+//            }, 15000)
             val s = ad.startDiscovery()
             callback(Result.success(s))
         } ?: {
