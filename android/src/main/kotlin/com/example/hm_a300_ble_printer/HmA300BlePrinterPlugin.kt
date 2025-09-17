@@ -271,10 +271,6 @@ class HmA300BlePrinterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     override fun disconnect(address: String, callback: (Result<Boolean>) -> Unit) {
         Log.d(TAG, "disconnect: $address---$printerConnected")
-        if ("" == address) {
-            callback(Result.failure(FlutterError("address is empty")))
-            return
-        }
         if (printerConnected == address) {
             val s = PrinterHelper.portClose()
             if (s) printerConnected = ""
