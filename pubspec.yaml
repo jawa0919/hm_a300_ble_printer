@@ -1,0 +1,34 @@
+name: hm_a300_ble_printer
+description: a flutter plugin for HM-A300 ble printer.
+version: 0.0.1
+
+homepage: https://github.com/jawa0919/hm_a300_ble_printer
+repository: https://github.com/jawa0919/hm_a300_ble_printer
+issue_tracker: https://github.com/jawa0919/hm_a300_ble_printer/issues
+
+topics:
+  - bluetooth-printer
+  - hm-a300
+
+environment:
+  sdk: ^3.6.2
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  pigeon: ^26.0.1
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.example.hm_a300_ble_printer
+        pluginClass: HmA300BlePrinterPlugin
+      ios:
+        pluginClass: HmA300BlePrinterPlugin
