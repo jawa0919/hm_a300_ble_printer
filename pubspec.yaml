@@ -1,6 +1,6 @@
 name: hm_a300_ble_printer
 description: a flutter plugin for HM-A300 ble printer.
-version: 0.0.1
+version: 0.0.2
 
 homepage: https://github.com/jawa0919/hm_a300_ble_printer
 repository: https://github.com/jawa0919/hm_a300_ble_printer
