@@ -45,6 +45,8 @@ android {
 
     defaultConfig {
         minSdk = 23
+        // 这段脚本build.gradle会加入android/src/main/jniLibs下对应芯片架构.so文件
+        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64', 'x86' }
     }
 
     dependencies {
@@ -66,5 +68,6 @@ android {
 }
 
 dependencies {
-    implementation files('libs/CPCL_SDK_V1.22.01.jar')
+    // 这段脚本build.gradle会加入android/libs所有.jar文件
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
