@@ -1,7 +1,13 @@
-# 0.0.2
+# Changelog
+
+## v0.0.3
+
+* fix android build bug
+
+## v0.0.2
 
 * fix android bug
 
-# 0.0.1
+## v0.0.1
 
 * init release
