@@ -1,7 +1,10 @@
 import CoreBluetooth
 import Flutter
-import PrinterSDK
 import UIKit
+
+#if !targetEnvironment(simulator)
+import PrinterSDK
+#endif
 
 // 简单的日志工具类
 class Logger {
@@ -74,7 +77,11 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
         return centralManager
     }()
 
+    #if !targetEnvironment(simulator)
     private var ptPrinters = [String: PTPrinter]()
+    #else
+    private var ptPrinters = [String: Any]()
+    #endif
 
     func checkBleState(completion: @escaping (Result<Void, any Error>) -> Void) {
         let state = self.mCentralManager.state
@@ -87,6 +94,7 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
 
     func startScan(completion: @escaping (Result<Bool, any Error>) -> Void) {
         log.info("开始扫描蓝牙设备")
+        #if !targetEnvironment(simulator)
         let dispatcher = PTDispatcher.share()
         dispatcher?.whenFindAllBluetooth({ pts in
             guard let temp = pts as? [PTPrinter] else { return }
@@ -109,16 +117,29 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
         }
         dispatcher?.scanBluetooth()
         completion(Result.success(true))
+        #else
+        // 模拟器环境下的模拟实现
+        log.warning("在模拟器环境下，跳过实际的蓝牙扫描")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.fApi?.onDiscoveryFinished(map: [String: Any]()) { result in }
+        }
+        completion(Result.success(true))
+        #endif
     }
 
     func stopScan(completion: @escaping (Result<Bool, any Error>) -> Void) {
         log.info("停止扫描蓝牙设备")
+        #if !targetEnvironment(simulator)
         let dispatcher = PTDispatcher.share()
         dispatcher?.stopScanBluetooth()
+        #else
+        log.warning("在模拟器环境下，跳过实际的蓝牙停止扫描")
+        #endif
         completion(Result.success(true))
     }
 
     func connect(address: String, completion: @escaping (Result<Int64, any Error>) -> Void) {
+        #if !targetEnvironment(simulator)
         let dispatcher = PTDispatcher.share()
         log.info("连接设备: \(address)---\(dispatcher?.printerConnected?.uuid ?? "")")
         if address.isEmpty {
@@ -172,9 +193,22 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
             }
             dispatcher?.scanBluetooth()
         }
+        #else
+        // 模拟器环境下的模拟实现
+        log.warning("在模拟器环境下，跳过实际的蓝牙连接")
+        if address.isEmpty {
+            completion(Result.failure(PigeonError(code: "address is empty", message: nil, details: nil)))
+            return
+        }
+        // 模拟连接成功
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            completion(Result.success(200))
+        }
+        #endif
     }
 
     func disconnect(address: String, completion: @escaping (Result<Bool, any Error>) -> Void) {
+        #if !targetEnvironment(simulator)
         let dispatcher = PTDispatcher.share()
         log.info("断开连接: \(address)---\(dispatcher?.printerConnected?.uuid ?? "")")
         if address == dispatcher?.printerConnected?.uuid {
@@ -187,9 +221,15 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
             log.error("\(address)打印机未连接")
             completion(Result.success(false))
         }
+        #else
+        // 模拟器环境下的模拟实现
+        log.warning("在模拟器环境下，跳过实际的蓝牙断开连接")
+        completion(Result.success(true))
+        #endif
     }
 
     func sendCommand(address: String, cmd: String, completion: @escaping (Result<Bool, any Error>) -> Void) {
+        #if !targetEnvironment(simulator)
         let dispatcher = PTDispatcher.share()
         log.info("发送命令: \(address)---\(dispatcher?.printerConnected?.uuid ?? "")")
         if address.isEmpty {
@@ -208,13 +248,22 @@ public class HmA300BlePrinterPlugin: NSObject, FlutterPlugin, HmA300BlePrinterHo
             let pc = PTCommandCPCL.init()
             pc.appendCommand(cmd)
             dispatcher?.send(pc.cmdData as Data)
-            //            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            //                completion(Result.success(true))
-            //            }
         } else {
             log.error("\(address)打印机未连接")
             completion(Result.failure(PigeonError(code: "address is disconnect", message: nil, details: nil)))
         }
+        #else
+        // 模拟器环境下的模拟实现
+        log.warning("在模拟器环境下，跳过实际的命令发送")
+        if address.isEmpty {
+            completion(Result.failure(PigeonError(code: "address is empty", message: nil, details: nil)))
+            return
+        }
+        // 模拟发送成功
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            completion(Result.success(true))
+        }
+        #endif
     }
 
     // MARK: - CBCentralManagerDelegate方法实现
