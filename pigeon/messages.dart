@@ -8,7 +8,7 @@ import 'package:pigeon/pigeon.dart';
     kotlinOut:
         'android/src/main/kotlin/com/example/hm_a300_ble_printer/Messages.g.kt',
     kotlinOptions: KotlinOptions(),
-    swiftOut: 'ios/Classes/Messages.g.swift',
+    swiftOut: 'ios/hm_a300_ble_printer/Sources/hm_a300_ble_printer/Messages.g.swift',
     swiftOptions: SwiftOptions(),
   ),
 )
