@@ -1,8 +1,9 @@
-
-import 'hm_a300_ble_printer_platform_interface.dart';
+import 'package:flutter/services.dart';
 
 class HmA300BlePrinter {
-  Future<String?> getPlatformVersion() {
-    return HmA300BlePrinterPlatform.instance.getPlatformVersion();
+  static const _channel = MethodChannel('hm_a300_ble_printer');
+  Future<String?> getPlatformVersion() async {
+    final String version = await _channel.invokeMethod('getPlatformVersion');
+    return version;
   }
 }
