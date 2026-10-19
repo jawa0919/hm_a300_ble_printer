@@ -32,7 +32,15 @@ class _MyAppState extends State<MyApp> {
     // We also handle the message potentially returning null.
     try {
       platformVersion =
-          await _hmA300BlePrinterPlugin.getPlatformVersion() ?? 'Unknown platform version';
+          await _hmA300BlePrinterPlugin.getPlatformVersion() ??
+          'Unknown platform version';
+    } on PlatformException {
+      platformVersion = 'Failed to get platform version.';
+    }
+
+    try {
+      platformVersion += '\n';
+      platformVersion += await _hmA300BlePrinterPlugin.runningInfo();
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
