@@ -1,0 +1,34 @@
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      # 必须与 pub.dev 中配置的 Tag pattern 保持一致
+      # 例如 pub.dev 配置为 v{{version}}，这里就是 'v[0-9]+.[0-9]+.[0-9]+*'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  publish:
+    permissions:
+      id-token: write   # 必需：允许交换 OIDC 令牌用于认证
+      contents: read    # 用于检出代码
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # 设置 Flutter SDK (如果是纯 Dart 包，可使用 dart-lang/setup-dart)
+      - uses: flutter-actions/setup-flutter@v4
+      
+      # 关键步骤：自动配置 pub.dev 的 OIDC 凭据，无需手动管理 secret
+      - uses: flutter-actions/setup-pubdev-credentials@v1
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # 建议：在正式发布前先进行 dry-run 验证，防止意外发布有错误的包
+      - name: Validate package (dry-run)
+        run: flutter pub publish --dry-run
+      
+      # 正式发布
+      - name: Publish to pub.dev
+        run: flutter pub publish --force
