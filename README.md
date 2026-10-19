@@ -2,14 +2,17 @@
 
 A new Flutter project.
 
-## Getting Started
+## Other
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+### pigeon
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```shell
+dart run pigeon --input pigeon/messages.dart
+```
 
+### publish
+
+```shell
+flutter pub publish --dry-run -v
+flutter pub publish --server=https://pub.dev -v
+```
